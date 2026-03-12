@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тесты</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenMax.min.js"></script>  
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #2b323b;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            font-family: 'Bookman Old Style', 'Times New Roman', serif;
+        }
+
+        #bg-img {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: url('https://allwebs.ru/images/2026/03/10/8d2b3a05ad6f235eda6047b66d4968f0.png') center center/cover no-repeat;
+            z-index: 0;
+        }
+
+        .content-overlay {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            background-color: rgba(43, 50, 59, 0.7);
+            backdrop-filter: blur(3px);
+            padding: 20px 20px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .copyright {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            color: rgba(211, 220, 232, 0.2);
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+            z-index: 100;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .settings-button {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: #2b323b;
+            color: #d3dce8;
+            border: 1.5px solid #707580;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0.7;
+            z-index: 101;
+        }
+
+        .settings-button:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+            opacity: 1;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 60px;
+            right: 15px;
+            width: 280px;
+            background: #2b323b;
+            border: 2px solid #707580;
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 102;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .settings-panel.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .setting-item input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #707580;
+            border-radius: 2px;
+            -webkit-appearance: none;
+        }
+
+        .setting-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #d3dce8;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #707580;
+        }
+
+        .track-select {
+            width: 100%;
+            padding: 8px;
+            background: #1e252b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 4px;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .track-select option {
+            background: #2b323b;
+            color: #d3dce8;
+        }
+
+        .current-track {
+            color: #a7b3c3;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: #2b323b;
+            color: #d3dce8;
+            border: 1.5px solid #707580;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0.7;
+            z-index: 101;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+            opacity: 1;
+        }
+
+        .page-title {
+            color: #d3dce8;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 3rem;
+            text-shadow: 4px 4px 0 #2b323b, 8px 8px 0 rgba(0,0,0,0.5);
+            letter-spacing: 4px;
+            text-align: center;
+            margin: 20px 0 40px;
+        }
+
+        .blocks-menu {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .blocks-menu.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .test-block {
+            background: #2b323b;
+            border: 4px solid #707580;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 0 #000000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .test-block:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0 #000000;
+            border-color: #cad0de;
+        }
+
+        .test-block:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #000000;
+        }
+
+        .test-block-content {
+            display: flex;
+            align-items: center;
+            padding: 20px 30px;
+            gap: 25px;
+        }
+
+        .block-number {
+            font-family: 'Bookman Old Style', 'Times New Roman', serif;
+            font-size: 2.5rem;
+            color: #a7d0f0;
+            text-shadow: 0 0 10px rgba(167, 208, 240, 0.5);
+            min-width: 80px;
+            text-align: center;
+            background: transparent;
+            padding: 5px;
+            border: none;
+            transform: none;
+            box-shadow: none;
+            position: relative;
+        }
+
+        .block-number::before {
+            content: '❄';
+            position: absolute;
+            left: 5px;
+            top: -5px;
+            font-size: 1rem;
+            color: #a7d0f0;
+            opacity: 0.5;
+        }
+
+        .block-number::after {
+            content: '❄';
+            position: absolute;
+            right: 5px;
+            bottom: -5px;
+            font-size: 1rem;
+            color: #a7d0f0;
+            opacity: 0.5;
+        }
+
+        .block-number.special {
+            color: #c1e0ff;
+            text-shadow: 0 0 15px rgba(193, 224, 255, 0.7);
+        }
+
+        .block-number.special::before,
+        .block-number.special::after {
+            content: '❅';
+            color: #c1e0ff;
+        }
+
+        .block-number.unique {
+            color: #e0f0ff;
+            text-shadow: 0 0 20px rgba(224, 240, 255, 0.9);
+        }
+
+        .block-number.unique::before,
+        .block-number.unique::after {
+            content: '❆';
+            color: #e0f0ff;
+        }
+
+        .block-name {
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 2rem;
+            color: #d3dce8;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0 #2b323b;
+            flex: 1;
+        }
+
+        .test-container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #2b323b;
+            border: 4px solid #707580;
+            padding: 40px;
+            box-shadow: 0 20px 0 #000000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .test-container.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        .test-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 4px solid #707580;
+        }
+
+        .test-header h2 {
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 2.5rem;
+            color: #d3dce8;
+            text-shadow: 3px 3px 0 #2b323b;
+            flex: 1;
+        }
+
+        .back-to-menu {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 4px solid #707580;
+            padding: 12px 25px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 0 #000000;
+            letter-spacing: 1px;
+        }
+
+        .back-to-menu:hover {
+            background: #707580;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #000000;
+        }
+
+        .warning-message {
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
+            width: fit-content;
+            margin: 0 auto 20px;
+            background: #2b323b;
+            border: 2px solid #e74c3c;
+            color: #d3dce8;
+            padding: 8px 20px;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 0 #8b2c2c;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            border-radius: 4px;
+        }
+
+        .warning-message.visible {
+            opacity: 1;
+        }
+
+        .question-card {
+            background: #1e252b;
+            border: 3px solid #707580;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 0 #000000;
+        }
+
+        .question-text {
+            color: #d3dce8;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            background: #2b323b;
+            border: 2px solid #707580;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option:hover {
+            background: #3a4550;
+            border-color: #cad0de;
+        }
+
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .option input[type="radio"], 
+        .option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #cad0de;
+            pointer-events: none;
+        }
+
+        .option label {
+            color: #d3dce8;
+            font-size: 1.1rem;
+            cursor: pointer;
+            flex: 1;
+            pointer-events: none;
+        }
+
+        .option.correct {
+            background: #1e4a2b;
+            border-color: #2ecc71;
+        }
+
+        .option.incorrect {
+            background: #4a1e1e;
+            border-color: #e74c3c;
+        }
+
+        .option.correct label,
+        .option.incorrect label {
+            color: #ffffff;
+        }
+
+        .comment {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #1e252b;
+            border-left: 4px solid #707580;
+            color: #a7b3c3;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .comment.correct {
+            border-left-color: #2ecc71;
+        }
+
+        .comment.incorrect {
+            border-left-color: #e74c3c;
+        }
+
+        .check-button {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 4px solid #cad0de;
+            padding: 15px 40px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 0 #000000;
+            margin: 30px auto 0;
+            display: block;
+            width: fit-content;
+            letter-spacing: 2px;
+        }
+
+        .check-button:hover {
+            background: #707580;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0 #000000;
+        }
+
+        .check-button.checked {
+            border-color: #707580;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+                margin: 10px 0 20px;
+            }
+            
+            .test-block-content {
+                padding: 15px;
+                gap: 15px;
+            }
+            
+            .block-number {
+                font-size: 2rem;
+                min-width: 60px;
+            }
+            
+            .block-name {
+                font-size: 1.4rem;
+            }
+            
+            .test-container {
+                padding: 20px;
+            }
+            
+            .test-header h2 {
+                font-size: 1.8rem;
+            }
+            
+            .question-text {
+                font-size: 1.1rem;
+            }
+            
+            .option label {
+                font-size: 1rem;
+            }
+            
+            .check-button {
+                font-size: 1.4rem;
+                padding: 12px 30px;
+            }
+            
+            .back-button {
+                top: 60px;
+            }
+            
+            .warning-message {
+                font-size: 0.9rem;
+                padding: 6px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-img"></canvas>
+    
+    <div class="copyright">ⓒ Воющий</div>
+    
+    <button class="settings-button" id="settingsButton">⚙</button>
+    <a href="index.html" class="back-button">←</a>
+    
+    <div class="settings-panel" id="settingsPanel">
+        <div class="setting-item">
+            <label>Фоновая музыка</label>
+            <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Звук метели</label>
+            <input type="range" id="howlVolume" min="0" max="1" step="0.01" value="0.2">
+        </div>
+        <div class="setting-item">
+            <label>Звук печатания</label>
+            <input type="range" id="typingVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Сменить музыку</label>
+            <select class="track-select" id="trackSelect">
+                <option value="0">Музыка 1</option>
+                <option value="1">Музыка 2</option>
+                <option value="2">Музыка 3</option>
+                <option value="3">Музыка 4</option>
+                <option value="4">Музыка 5</option>
+                <option value="5">Музыка 6</option>
+                <option value="6">Музыка 7</option>
+            </select>
+            <div class="current-track" id="currentTrackDisplay">Сейчас играет: Музыка 1</div>
+        </div>
+    </div>
+    
+    <div class="content-overlay">
+        <h1 class="page-title">ТЕСТЫ</h1>
+        
+        <div class="warning-message" id="warningMessage">Ответь на все вопросы!</div>
+        
+        <div class="blocks-menu" id="blocksMenu">
+            <div class="test-block" data-block="blogs">
+                <div class="test-block-content">
+                    <span class="block-number">⓪</span>
+                    <span class="block-name">Блоги</span>
+                </div>
+            </div>
+            <div class="test-block" data-block="rules">
+                <div class="test-block-content">
+                    <span class="block-number special">①</span>
+                    <span class="block-name">Устав и правила</span>
+                </div>
+            </div>
+            <div class="test-block" data-block="territory">
+                <div class="test-block-content">
+                    <span class="block-number unique">②</span>
+                    <span class="block-name">Территория</span>
+                </div>
+            </div>
+            <div class="test-block" data-block="hunting">
+                <div class="test-block-content">
+                    <span class="block-number">③</span>
+                    <span class="block-name">Охота</span>
+                </div>
+            </div>
+            <div class="test-block" data-block="fight">
+                <div class="test-block-content">
+                    <span class="block-number special">④</span>
+                    <span class="block-name">Бой</span>
+                </div>
+            </div>
+            <div class="test-block" data-block="safety">
+                <div class="test-block-content">
+                    <span class="block-number unique">⑤</span>
+                    <span class="block-name">Основы безопасности</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-container" id="testContainer">
+            <div class="test-header">
+                <h2 id="testTitle">Блоги</h2>
+                <button class="back-to-menu" id="backToMenu">← К темам</button>
+            </div>
+            <div id="questionsContainer"></div>
+            <button class="check-button" id="checkTest">ПРОВЕРИТЬ</button>
+        </div>
+    </div>
+
+    <script>
+        let soundEnabled = localStorage.getItem('northSoundEnabled') !== 'false';
+        let typingSoundEnabled = localStorage.getItem('northTypingSoundEnabled') !== 'false';
+        const savedTrackIndex = localStorage.getItem('northTrackIndex');
+        let currentTrackIndex = savedTrackIndex ? parseInt(savedTrackIndex) : 0;
+        const savedTrackTime = localStorage.getItem('northTrackTime');
+        const savedTrackTimeNum = savedTrackTime ? parseFloat(savedTrackTime) : 0;
+        
+        const tracks = [
+            'assets/music1.mp3',
+            'assets/music2.mp3',
+            'assets/music3.mp3',
+            'assets/music4.mp3',
+            'assets/music5.mp3',
+            'assets/music6.mp3',
+            'assets/music7.mp3',
+        ];
+        
+        const trackNames = ['Музыка 1', 'Музыка 2', 'Музыка 3', 'Музыка 4', 'Музыка 5', 'Музыка 6', 'Музыка 7'];
+        
+        const backgroundMusic = new Audio();
+        backgroundMusic.src = tracks[currentTrackIndex];
+        
+        const howlSound = new Audio();
+        howlSound.src = 'assets/blizzard.mp3';
+        howlSound.volume = localStorage.getItem('northHowlVolume') ? parseFloat(localStorage.getItem('northHowlVolume')) : 0.2;
+        howlSound.loop = true;
+        
+        const typingSound = new Audio();
+        typingSound.src = 'assets/typing.mp3';
+        typingSound.volume = localStorage.getItem('northTypingVolume') ? parseFloat(localStorage.getItem('northTypingVolume')) : 1;
+        
+        const clickSound = new Audio();
+        clickSound.src = 'assets/click.mp3';
+        clickSound.volume = localStorage.getItem('northClickVolume') ? parseFloat(localStorage.getItem('northClickVolume')) : 0.5;
+        
+        backgroundMusic.loop = false;
+        
+        const settingsButton = document.getElementById('settingsButton');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const musicVolumeSlider = document.getElementById('musicVolume');
+        const howlVolumeSlider = document.getElementById('howlVolume');
+        const typingVolumeSlider = document.getElementById('typingVolume');
+        const trackSelect = document.getElementById('trackSelect');
+        const currentTrackDisplay = document.getElementById('currentTrackDisplay');
+        const clickVolumeSlider = document.getElementById('clickVolume');
+        
+        function playClickSound() {
+            if (soundEnabled) {
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => console.log('Звук клика не может быть воспроизведен:', e));
+            }
+        }
+        
+        settingsButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playClickSound();
+            settingsPanel.classList.toggle('visible');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!settingsPanel.contains(e.target) && !settingsButton.contains(e.target)) {
+                settingsPanel.classList.remove('visible');
+            }
+        });
+        
+        musicVolumeSlider.addEventListener('input', (e) => {
+            backgroundMusic.volume = e.target.value;
+            localStorage.setItem('northMusicVolume', e.target.value);
+        });
+        
+        howlVolumeSlider.addEventListener('input', (e) => {
+            howlSound.volume = e.target.value;
+            localStorage.setItem('northHowlVolume', e.target.value);
+        });
+        
+        typingVolumeSlider.addEventListener('input', (e) => {
+            typingSound.volume = e.target.value;
+            localStorage.setItem('northTypingVolume', e.target.value);
+        });
+        
+        if (clickVolumeSlider) {
+            clickVolumeSlider.addEventListener('input', (e) => {
+                clickSound.volume = e.target.value;
+                localStorage.setItem('northClickVolume', e.target.value);
+            });
+            clickVolumeSlider.value = localStorage.getItem('northClickVolume') || 0.5;
+            clickSound.volume = clickVolumeSlider.value;
+        }
+        
+        trackSelect.addEventListener('change', (e) => {
+            playClickSound();
+            const wasPlaying = soundEnabled && !backgroundMusic.paused;
+            if (wasPlaying) {
+                backgroundMusic.pause();
+            }
+            currentTrackIndex = parseInt(e.target.value);
+            backgroundMusic.src = tracks[currentTrackIndex];
+            currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+            if (wasPlaying) {
+                backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            }
+            localStorage.setItem('northTrackIndex', currentTrackIndex);
+        });
+        
+        musicVolumeSlider.value = localStorage.getItem('northMusicVolume') || 1;
+        howlVolumeSlider.value = localStorage.getItem('northHowlVolume') || 0.2;
+        typingVolumeSlider.value = localStorage.getItem('northTypingVolume') || 1;
+        backgroundMusic.volume = musicVolumeSlider.value;
+        howlSound.volume = howlVolumeSlider.value;
+        typingSound.volume = typingVolumeSlider.value;
+        trackSelect.value = currentTrackIndex;
+        currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+        
+        function playCurrentTrack() {
+            if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                backgroundMusic.currentTime = savedTrackTimeNum;
+            }
+            backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+        }
+        
+        function saveTrackState() {
+            localStorage.setItem('northTrackIndex', currentTrackIndex);
+            localStorage.setItem('northTrackTime', backgroundMusic.currentTime);
+        }
+        
+        function updateSoundUI() {
+            if (soundEnabled) {
+                playCurrentTrack();
+                howlSound.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            } else {
+                backgroundMusic.pause();
+                howlSound.pause();
+                saveTrackState();
+            }
+            localStorage.setItem('northSoundEnabled', soundEnabled);
+        }
+        
+        backgroundMusic.addEventListener('ended', () => {
+            saveTrackState();
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            backgroundMusic.src = tracks[currentTrackIndex];
+            trackSelect.value = currentTrackIndex;
+            currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+            if (soundEnabled) {
+                backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            }
+            saveTrackState();
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            saveTrackState();
+        });
+        
+        window.addEventListener('load', () => {
+            if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                backgroundMusic.currentTime = savedTrackTimeNum;
+            }
+            updateSoundUI();
+        });
+        
+        updateSoundUI();
+        
+        const canvas = document.getElementById('bg-img');
+        const ctx = canvas.getContext('2d');
+        
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = 500;
+        
+        const snowflakes = [];
+        const snowflakeCount = 999;
+        let activeSnowflakes = 0;
+        
+        const wind = 500;
+        const windVariance = 1.5;
+        const speed = 3;
+        
+        const snowflakeImage = new Image();
+        snowflakeImage.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAulBMVEVHcEz////+/v7////+/v79/f3////x8fH9/f3+/v7+/v7////+/v7////////////////////////////////////////////////+/v7///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+MnUWcAAAAPnRSTlMACQ4GBAoWAQMCDRMQJSIfOlQICxgdSkFyG09hXDcrKUeMLZKgsmmnPoIaL2aHWH4xbaw0d0S8wXu3m5cymMmy7QsAAAVDSURBVHgBzZd3g6JKEMQP99BbzoSYs5jFHDbq9/9ar6qb4aHLxr+uX7jYP6pqmKHn179VGa37sDLyO1/u/aW9f1C/tfAzYr4GYa+23sVLMF9h8OFhd6lkWZZt2/h/qSQMCvmEQNt/+ES0eg4qlUo5KcfxPMvib3+KwOPZz+5UNpv9GxZ+CggZnyDon+JtL4XudDpdDitNCBCwEmbxTgBID97xeHSXF41KQapSqTTKZTBSjk3E72SCAJCe5aXwdHbnc6by+UJlAR1AeEZFAgL9EOA57K8Ucrle1/cDlu/3cjkwFGFzSeTNeBsB+m3tz+d6fnA+dIqszuEc+D0gGjSS9ZAmjdz/yrwFiIEy+wN0z2a12ulUq81mxc6ZCBgBwrETfWS4BBYFNPK57hbtp361Wm028b/+qWYQDfrwiKCPWwATSC8KeH6nWOtXm67rrtdr1wWlbxANRqEiqOEWkKKAnn9gv+u22y2pdttVROAzChFhqYbMdQSOJNDbdmb9prtut5aTyW63myyXLUHMioeAPpCEEO6o4RYAB91z8VR112jf1etHVL2+A2LdrJ5mRfgAIa0EJhkH2BqBLwLay139+LTZzOfzzdNREC59HEJC1ivRxK0CRhAQsG5Ndsen+Wo1GAxWKzCIgIiIIEn+ZgoJgFpVBKB/MJQaAHGsT1prVwg5SdKhiY8Axw36X19Yr0RAhBLOXRAogSuRiS8jQ8znQgAEDIaXEWo6GhGhhCZy2NIEcyQgc/0elAshYCKAl9F0ut/vp9PRCwlw4Tb7M5pYpNVDBMhEAN8AVoPXEdrHqD0IryDsllgLlYClZIyxEO6wjgyhe5j1xcJqCAD6n5+fx2PVcKSJU/HQzf3v4Wo3Sop4kZrr5Q4WXgh4fnh4AGIPwuqpTgmzDj0o4P4a4EQhtHbH+eACAPofH4GAhldKQCrigesQBzAEXcgcPTAEhDiajp/RTwJyEAni4cwQuJBXAB5pXMheIB4YwgssAIASCcPBhh6wDt1bAD2Q4PxNV3K+8YAQmEEEeAVg8iHgDhIQ41YlbFYxD2EIBpB7A5AvCyWUIwlPRkIsxbgCz7oGyLnopcxKtkMJJLA/buGcAIjtqHgKF32X0B+9CM0+VsEA9FWOr4SHU8VI4EKQAAQ2BB086asY9Pgi2SXZC/GiBLMQ3BDHDQmjKYvv8oYvUrXWCXKFchKAO6IUe59pAjviZYRiPx0wgo7PveDEt0L8aNQ9qVsKK8Fj5XK58FChgDUiQIaNhAz1ZVAPfBd0V/Ng4sk2YH892s4EwMEtQHc1Pw/YETShZ+t8hQqPxaY4YAQez0TT+OZ01uMdBDnecb4/PbE/dp6YvZjgwYOE6Hxv8wPD2u3YHwpIdhDf1QuYOHdq/Ma18JFCLVvSTwFcg6wNB8mTin5l9SMnX+l1u43mdnvNfp5nZismAbgpS3ZsUCCi6bKa8nXsBL08IqSDhAjMsWBzVCEhOBRnNc4aMmic5APNBLAGpUQBGiNnDRIwbPhnjEpm2MHAFIiBv3oWJANEg+V50by1PRw6HLg6ncPWlwFBBHwMgAtOnGUOjDLxbbfbANOaGZQcAmjhI4IOnUCAIaUD4yKacbgTk1PQsddCEBx7G2Tk0YyZlXMvB072y1ZOJpjB23IgAkbKjUajwlpczbz3H96b7nnzsGwgyDClk7stApjhBwhzfdD7gyk+nZP/Z/3GB0RQhm17nqPl2XZJp+XPAGY9yOAdSquEbrZzRPwKgCrkHkaMFrvjd5/PEfFrJJvNRfK7d1lzk9X6+ZWY19t/sP4DoePqp9agWnMAAAAASUVORK5CYII=";
+        
+        class Snowflake {
+            constructor(index) {
+                this.index = index;
+                this.reset();
+            }
+            
+            reset() {
+                this.size = this.rand(5, 10);
+                this.alpha = this.rand(0.25, 0.75);
+                
+                if (this.index < snowflakeCount / 100) {
+                    this.size = this.rand(150, 200);
+                    this.alpha = this.alpha / 3.3;
+                } else if (this.index < snowflakeCount / 10) {
+                    this.size = this.rand(19, 33);
+                    this.alpha = this.alpha / 1.5;
+                }
+                
+                this.rot = -this.rand(3, 5);
+                if (this.index % 4 === 0) this.rot = -this.rot;
+                
+                this.x = this.rand(-Math.abs(wind), width + Math.abs(wind));
+                this.y = -this.size - this.rand(0, 500);
+                this.progress = this.rand(0, 0.8);
+                this.duration = (15 - this.size) / speed;
+                this.windOffset = this.rand(wind / windVariance, wind * windVariance);
+            }
+            
+            rand(min, max) {
+                return min + (max - min) * Math.random();
+            }
+            
+            update() {
+                this.progress += 0.016 / this.duration;
+                
+                if (this.progress > 1) {
+                    this.progress = 0;
+                    this.x = this.rand(-Math.abs(wind), width + Math.abs(wind));
+                    this.y = -this.size - this.rand(0, 200);
+                    this.windOffset = this.rand(wind / windVariance, wind * windVariance);
+                }
+                
+                this.y += (height / this.duration) * 0.016;
+                this.x += (this.windOffset / this.duration) * 0.016;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rot * this.progress);
+                ctx.globalAlpha = this.alpha;
+                ctx.drawImage(snowflakeImage, -this.size/2, -this.size/2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+        
+        function initSnowGradually() {
+            if (activeSnowflakes < snowflakeCount) {
+                for (let i = 0; i < 10; i++) {
+                    if (activeSnowflakes < snowflakeCount) {
+                        snowflakes.push(new Snowflake(activeSnowflakes));
+                        activeSnowflakes++;
+                    }
+                }
+            }
+            requestAnimationFrame(initSnowGradually);
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            for (let flake of snowflakes) {
+                flake.update();
+                flake.draw();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        snowflakeImage.onload = () => {
+            initSnowGradually();
+            animate();
+        };
+        
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = 500;
+            
+            snowflakes.length = 0;
+            activeSnowflakes = 0;
+            initSnowGradually();
+        });
+        
+        const questionBank = {
+            blogs: [
+                {
+                    question: "Какие категории блогов существуют?",
+                    type: "multiple",
+                    options: [
+                        { text: "Боевые", correct: false, comment: "" },
+                        { text: "Развлекательные", correct: false, comment: "" },
+                        { text: "С основной информацией", correct: true, comment: "" },
+                        { text: "Направленные на поддержание порядка", correct: true, comment: "" },
+                        { text: "Союзные", correct: false, comment: "" },
+                        { text: "Ежедневная клановая деятельность", correct: true, comment: "" },
+                        { text: "Отрядные", correct: true, comment: "" },
+                        { text: "Обучающие", correct: true, comment: "" },
+                        { text: "Праздничные", correct: false, comment: "" },
+                    ]
+                },
+                {
+                    question: "Каких блогов НЕ существует?",
+                    type: "multiple",
+                    options: [
+                        { text: "Блог Нарушителей", correct: true, comment: "" },
+                        { text: "Охотники", correct: false, comment: "" },
+                        { text: "Чистильщики", correct: true, comment: "" },
+                        { text: "Охрана границ", correct: false, comment: "" },
+                        { text: "Пловцы", correct: false, comment: "" },
+                        { text: "Боевой легион", correct: true, comment: "" },
+                        { text: "Гвардейцы", correct: false, comment: "" },
+                        { text: "Стенограмма", correct: false, comment: "" },
+                        { text: "Шаманы", correct: false, comment: "" },
+                    ]
+                },
+                {
+                    question: "Какие блоги существуют?",
+                    type: "multiple",
+                    options: [
+                        { text: "Блог Нарушителей", correct: false, comment: "" },
+                        { text: "Охотники", correct: true, comment: "" },
+                        { text: "Чистильщики", correct: false, comment: "" },
+                        { text: "Охрана границ", correct: true, comment: "" },
+                        { text: "Пловцы", correct: true, comment: "" },
+                        { text: "Боевой легион", correct: false, comment: "" },
+                        { text: "Гвардейцы", correct: true, comment: "" },
+                        { text: "Стенограмма", correct: true, comment: "" },
+                        { text: "Шаманы", correct: true, comment: "" },
+                    ]
+                },
+                {
+                    question: "Где можно найти доску почёта?",
+                    type: "single",
+                    options: [
+                        { text: "В Главном блоге", correct: false },
+                        { text: "В Иерархии и переписи", correct: false },
+                        { text: "В Стенограмме", correct: false },
+                        { text: "В блоге истории Северного клана", correct: true },
+                    ]
+                },
+                {
+                    question: "Есть ли у Северного клана союзные блоги?",
+                    type: "single",
+                    options: [
+                        { text: "Да", correct: true },
+                        { text: "Нет", correct: false },
+                    ]
+                },
+                {
+                    question: "Где можно найти пособие по лазательным локациям?",
+                    type: "single",
+                    options: [
+                        { text: "В блоге Разведчиков", correct: true },
+                        { text: "В блоге Шаманов", correct: false },
+                        { text: "В блоге Пловцов", correct: false },
+                        { text: "В блоге Гвардейцев", correct: false },
+                    ]
+                },
+            ],
+            rules: [
+                {
+                    question: "Какой категории правил НЕ существует?",
+                    type: "single",
+                    options: [
+                        { text: "Безопасность", correct: false },
+                        { text: "Дисциплина", correct: false },
+                        { text: "Территория", correct: true },
+                        { text: "Здоровье", correct: false },
+                    ]
+                },
+                {
+                    question: "Что выдаётся за нарушение правил?",
+                    type: "single",
+                    options: [
+                        { text: "Поощрение", correct: true },
+                        { text: "Тёмные баллы", correct: true },
+                        { text: "Баллы нарушений", correct: true },
+                        { text: "Чёрные баллы", correct: true },
+                    ]
+                },
+                {
+                    question: "Какие наказания существуют в клане?",
+                    type: "multiple",
+                    options: [
+                        { text: "Подстилки", correct: true },
+                        { text: "Умерщвление", correct: true },
+                        { text: "Выдача чёрных баллов", correct: true },
+                        { text: "Изгнание", correct: true },
+                        { text: "Предупреждение", correct: false },
+                    ]
+                },
+                {
+                    question: "Что сделаешь, если заметишь бесхозно лежащий на локации уникальный предмет?",
+                    type: "single",
+                    options: [
+                        { text: "Заберу его себе", correct: false },
+                        { text: "Отдам любому коту", correct: false },
+                        { text: "Отдам тому, кто откликнется", correct: false },
+                        { text: "Осмотрю его и передам Правому Альянсу", correct: true },
+                    ]
+                },
+                {
+                    question: "Можешь ли ты убить кота по его просьбе?",
+                    type: "single",
+                    options: [
+                        { text: "Да", correct: false },
+                        { text: "Нет", correct: true },
+                    ]
+                },
+                {
+                    question: "Ты видишь разговор, в котором узнал, что воспитанник усыновил котёнка. Является ли это нарушением?",
+                    type: "single",
+                    options: [
+                        { text: "Да", correct: false },
+                        { text: "Нет", correct: true },
+                    ]
+                },
+            ],
+            territory: [
+                {
+                    question: "Где находится бот Барсук-Визгун?",
+                    type: "single",
+                    options: [
+                        { text: "Величественный бор", correct: false },
+                        { text: "Ельник", correct: false },
+                        { text: "Пихтовый коридор", correct: false },
+                        { text: "Высокие лиственницы", correct: true },
+                        { text: "Редкий сосняк", correct: false },
+                    ]
+                },
+                {
+                    question: "Отметь все питьевые локации на территории клана",
+                    type: "multiple",
+                    options: [
+                        { text: "Дрейфующие льды", correct: true },
+                        { text: "Ельник", correct: false },
+                        { text: "Морозный яр", correct: true },
+                        { text: "Перекат", correct: true },
+                        { text: "Плавучая льдина", correct: false },
+                        { text: "Мель", correct: false },
+                        { text: "Каменистая мель", correct: false },
+                    ]
+                },
+                {
+                    question: "Где расположен выход в горы?",
+                    type: "single",
+                    options: [
+                        { text: "Мёрзлые земли", correct: true },
+                        { text: "Скалистая гряда", correct: false },
+                        { text: "Лавинный конус", correct: false },
+                        { text: "Переправа", correct: false },
+                    ]
+                },
+                {
+                    question: "Где расположен выход в горы?",
+                    type: "single",
+                    options: [
+                        { text: "Ледопад", correct: true },
+                        { text: "Скалистая гряда", correct: false },
+                        { text: "Лавинный конус", correct: false },
+                        { text: "Переправа", correct: false },
+                    ]
+                },
+                {
+                    question: "Кто собирает мох с Морозного яра?",
+                    type: "single",
+                    options: [
+                        { text: "Любой кот", correct: true },
+                        { text: "Шаманы и их помощники", correct: false },
+                        { text: "Патруль", correct: false },
+                        { text: "Травник", correct: false },
+                    ]
+                },
+                {
+                    question: "Во сколько начинается сбор травника?",
+                    type: "single",
+                    options: [
+                        { text: "В 17:00", correct: false },
+                        { text: "В 15:00", correct: false },
+                        { text: "В 15:50", correct: true },
+                        { text: "В 15:55", correct: false },
+                        { text: "В 16:00", correct: false },
+                    ]
+                },
+                {
+                    question: "Мёрзлые земли – это...",
+                    type: "single",
+                    options: [
+                        { text: "Общая локация", correct: false },
+                        { text: "Граница", correct: true },
+                        { text: "Спорная локация", correct: false },
+                        { text: "Чужая локация", correct: false },
+                    ]
+                },
+                {
+                    question: "Скалистая гряда – это...",
+                    type: "single",
+                    options: [
+                        { text: "Общая локация", correct: true },
+                        { text: "Граница", correct: false },
+                        { text: "Спорная локация", correct: false },
+                        { text: "Чужая локация", correct: false },
+                    ]
+                },
+                {
+                    question: "Плато диких ветров – это...",
+                    type: "single",
+                    options: [
+                        { text: "Общая локация", correct: false },
+                        { text: "Граница", correct: false },
+                        { text: "Спорная локация", correct: false },
+                        { text: "Чужая локация", correct: true },
+                    ]
+                },
+            ],
+            hunting: [
+                {
+                    question: "Сколько действует ускорение?",
+                    type: "single",
+                    options: [
+                        { text: "3 секунды", correct: false },
+                        { text: "2 секунды", correct: false },
+                        { text: "1 секунда", correct: false },
+                        { text: "5 секунд", correct: true },
+                    ]
+                },
+                {
+                    question: "Какой уровень боевых умений у бота Барсук-Визгун?",
+                    type: "single",
+                    options: [
+                        { text: "8", correct: true },
+                        { text: "9", correct: false },
+                        { text: "7", correct: false },
+                        { text: "6", correct: false },
+                    ]
+                },
+                {
+                    question: "Нужно ли относить дичь после охоты, если носильщиков нет?",
+                    type: "single",
+                    options: [
+                        { text: "Да", correct: true },
+                        { text: "Нет, ведущий всё отнесёт", correct: false },
+                    ]
+                },
+                {
+                    question: "Как делятся кучки в Складе под снегом?",
+                    type: "single",
+                    options: [
+                        { text: "Водный мох, хилые, обычные, упитанные, мусор", correct: true },
+                        { text: "Хилая и обычная дичь, упитанная дичь, мусор", correct: false },
+                        { text: "Водный мох, дичь, мусор", correct: false },
+                    ]
+                },
+                {
+                    question: "Можно ли охотиться вне охотничьего патруля?",
+                    type: "single",
+                    options: [
+                        { text: "Да", correct: true },
+                        { text: "Нет", correct: false },
+                    ]
+                },
+                {
+                    question: "Как можно определить упитанность дичи?",
+                    type: "single",
+                    options: [
+                        { text: "Осмотрев её через действие", correct: false },
+                        { text: "Посмотрев название", correct: true },
+                        { text: "Только охотник, поймавший её, знает, какая упитанность", correct: false },
+                    ]
+                },
+                {
+                    question: "Когда проводится охотничий турнир?",
+                    type: "single",
+                    options: [
+                        { text: "Каждую субботу в 15:00 МСК", correct: false },
+                        { text: "Каждое воскресенье в 15:00 МСК", correct: true },
+                        { text: "В начале каждого месяца в 17:00 МСК", correct: false },
+                        { text: "В конце каждого месяца в 17:00 МСК", correct: false },
+                    ]
+                },
+            ],
+            fight: [
+                {
+                    question: "Какой режим подразумевает использование когтей?",
+                    type: "single",
+                    options: [
+                        { text: "Т+1", correct: false },
+                        { text: "Т+2", correct: true },
+                        { text: "Т+3", correct: false },
+                    ]
+                },
+                {
+                    question: "Как можно узнать текущий режим противника?",
+                    type: "single",
+                    options: [
+                        { text: "Изменится цвет энергии у стрелочки", correct: false },
+                        { text: "Изменится цвет наконечника у стрелочки", correct: true },
+                        { text: "Изменится форма наконечника у стрелочки", correct: false },
+                    ]
+                },
+                {
+                    question: "Можно ли изменить скрытые параметры?",
+                    type: "single",
+                    options: [
+                        { text: "Да", correct: true },
+                        { text: "Нет", correct: false },
+                    ]
+                },
+                {
+                    question: "Отметь существующие скрытые параметры",
+                    type: "multiple",
+                    options: [
+                        { text: "Стрела", correct: true },
+                        { text: "Размах", correct: false },
+                        { text: "Выпад", correct: false },
+                        { text: "Зад", correct: true },
+                        { text: "Урон", correct: true },
+                        { text: "Защита", correct: true },
+                        { text: "Нападение", correct: false },
+                        { text: "Укус", correct: false },
+                        { text: "Отдача", correct: true },
+                    ]
+                },
+                {
+                    question: "Удар в какую часть тела противника снесёт наибольшее количество энергии?",
+                    type: "single",
+                    options: [
+                        { text: "Лапы", correct: true },
+                        { text: "Живот", correct: true },
+                        { text: "Горло", correct: true },
+                        { text: "Хвост", correct: true },
+                        { text: "Шея", correct: true },
+                        { text: "Спина", correct: true },
+                    ]
+                },
+                {
+                    question: "Можно ли выйти из боережима сразу, если сделал один удар?",
+                    type: "single",
+                    options: [
+                        { text: "Нет", correct: true },
+                        { text: "Да", correct: false },
+                    ]
+                },
+                {
+                    question: "В каком направлении бегать лучше всего?",
+                    type: "single",
+                    options: [
+                        { text: "Против стрелки", correct: false },
+                        { text: "По направлению стрелки", correct: true },
+                    ]
+                },
+            ],
+            safety: [
+                {
+                    question: "Какие бывают виды угроз?",
+                    type: "multiple",
+                    options: [
+                        { text: "Внутренние", correct: true },
+                        { text: "Внешние", correct: true },
+                        { text: "Стихийные", correct: false },
+                        { text: "Племенные", correct: false },
+                        { text: "Инофракционные", correct: false },
+                        { text: "Нейтральные", correct: false },
+                    ]
+                },
+                {
+                    question: "Куда не нужно убегать при появлении росомахи?",
+                    type: "single",
+                    options: [
+                        { text: "В лагерь", correct: false },
+                        { text: "На лазательные локации", correct: false },
+                        { text: "На плавательные локации", correct: true },
+                        { text: "В горы", correct: false },
+                    ]
+                },
+                {
+                    question: "Кто в первую очередь устраняет росомаху?",
+                    type: "single",
+                    options: [
+                        { text: "Авангард", correct: true },
+                        { text: "Любые воители с 9 БУ", correct: false },
+                        { text: "Любые гвардейцы", correct: false },
+                    ]
+                },
+                {
+                    question: "Обязательно ли слушать старших во время чрезвычайных ситуаций?",
+                    type: "single",
+                    options: [
+                        { text: "Не обязательно, если знаешь алгоритм действий", correct: false },
+                        { text: "Обязательно", correct: true },
+                    ]
+                },
+                {
+                    question: "Можно ли устроить засаду росомахе в водах?",
+                    type: "single",
+                    options: [
+                        { text: "Да, это удобно, так как боевой бот накопит сон", correct: false },
+                        { text: "Нет", correct: true },
+                    ]
+                },
+                {
+                    question: "Может ли боевой бот забираться на деревья и скалы?",
+                    type: "single",
+                    options: [
+                        { text: "Да", correct: false },
+                        { text: "Нет", correct: true },
+                    ]
+                },
+            ]
+        };
+        
+        const blockNames = {
+            blogs: "Блоги",
+            rules: "Устав и правила",
+            territory: "Территория",
+            hunting: "Охота",
+            fight: "Бой",
+            safety: "Основы безопасности"
+        };
+        
+        const blocksMenu = document.getElementById('blocksMenu');
+        const testContainer = document.getElementById('testContainer');
+        const testTitle = document.getElementById('testTitle');
+        const questionsContainer = document.getElementById('questionsContainer');
+        const backToMenu = document.getElementById('backToMenu');
+        const checkButton = document.getElementById('checkTest');
+        const warningMessage = document.getElementById('warningMessage');
+        
+        let currentBlock = null;
+        let currentQuestions = [];
+        let testChecked = false;
+        
+        setTimeout(() => {
+            blocksMenu.classList.add('visible');
+        }, 100);
+        
+        document.querySelectorAll('.test-block').forEach(block => {
+            block.addEventListener('click', () => {
+                playClickSound();
+                const blockType = block.dataset.block;
+                showTest(blockType);
+            });
+        });
+        
+        function showTest(blockType) {
+            currentBlock = blockType;
+            loadNewQuestions();
+            
+            blocksMenu.style.display = 'none';
+            testContainer.classList.add('visible');
+        }
+        
+        function loadNewQuestions() {
+            currentQuestions = getRandomQuestions(questionBank[currentBlock], 5);
+            testChecked = false;
+            
+            testTitle.textContent = blockNames[currentBlock];
+            renderQuestions();
+            
+            checkButton.textContent = 'ПРОВЕРИТЬ';
+            checkButton.classList.remove('checked');
+        }
+        
+        function getRandomQuestions(questions, count) {
+            const shuffled = [...questions].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+        
+        function renderQuestions() {
+            let html = '';
+            
+            currentQuestions.forEach((q, index) => {
+                html += `
+                    <div class="question-card" data-question="${index}">
+                        <div class="question-text">${index + 1}. ${q.question}</div>
+                        <div class="options-container">
+                `;
+                
+                q.options.forEach((opt, optIndex) => {
+                    const inputType = q.type === 'multiple' ? 'checkbox' : 'radio';
+                    const name = q.type === 'multiple' ? `q${index}_${optIndex}` : `q${index}`;
+                    
+                    html += `
+                        <div class="option" data-option="${optIndex}" data-correct="${opt.correct}">
+                            <input type="${inputType}" name="${name}" value="${optIndex}" data-option-index="${optIndex}">
+                            <label>${opt.text}</label>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            questionsContainer.innerHTML = html;
+            
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    if (testChecked) return;
+                    playClickSound();
+                    const input = this.querySelector('input');
+                    if (input.type === 'radio') {
+                        const name = input.name;
+                        document.querySelectorAll(`input[name="${name}"]`).forEach(inp => {
+                            inp.checked = false;
+                        });
+                        input.checked = true;
+                    } else {
+                        input.checked = !input.checked;
+                    }
+                });
+            });
+        }
+        
+        backToMenu.addEventListener('click', () => {
+            playClickSound();
+            testContainer.classList.remove('visible');
+            blocksMenu.style.display = 'flex';
+        });
+        
+        function checkAllQuestionsAnswered() {
+            const questionCards = document.querySelectorAll('.question-card');
+            
+            for (let i = 0; i < questionCards.length; i++) {
+                const card = questionCards[i];
+                const inputs = card.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+                let answered = false;
+                
+                for (let j = 0; j < inputs.length; j++) {
+                    if (inputs[j].checked) {
+                        answered = true;
+                        break;
+                    }
+                }
+                
+                if (!answered) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        function showWarning() {
+            warningMessage.classList.add('visible');
+            setTimeout(() => {
+                warningMessage.classList.remove('visible');
+            }, 2000);
+        }
+        
+        checkButton.addEventListener('click', () => {
+            playClickSound();
+            if (!testChecked) {
+                if (!checkAllQuestionsAnswered()) {
+                    showWarning();
+                    return;
+                }
+                
+                checkAnswers();
+                testChecked = true;
+                checkButton.textContent = 'ЗАНОВО';
+                checkButton.classList.add('checked');
+                
+                document.querySelectorAll('.option').forEach(option => {
+                    option.style.pointerEvents = 'none';
+                });
+            } else {
+                loadNewQuestions();
+                document.querySelectorAll('.option').forEach(option => {
+                    option.style.pointerEvents = 'auto';
+                });
+            }
+        });
+        
+        function checkAnswers() {
+            const questionCards = document.querySelectorAll('.question-card');
+            
+            questionCards.forEach((card, qIndex) => {
+                const question = currentQuestions[qIndex];
+                const options = card.querySelectorAll('.option');
+                let hasAnySelected = false;
+                
+                options.forEach((opt, optIndex) => {
+                    const input = opt.querySelector('input');
+                    const isSelected = input.checked;
+                    const isCorrect = question.options[optIndex].correct;
+                    
+                    if (isSelected) hasAnySelected = true;
+                    
+                    opt.classList.remove('correct', 'incorrect');
+                    const oldComment = opt.nextElementSibling;
+                    if (oldComment && oldComment.classList.contains('comment')) {
+                        oldComment.remove();
+                    }
+                    
+                    if (isSelected && isCorrect) {
+                        opt.classList.add('correct');
+                    } else if (isSelected && !isCorrect) {
+                        opt.classList.add('incorrect');
+                    } else if (!isSelected && isCorrect && question.type === 'single') {
+                        opt.classList.add('correct');
+                    }
+                    
+                    const commentText = question.options[optIndex].comment;
+                    if (commentText && commentText.trim() !== '') {
+                        const comment = document.createElement('div');
+                        comment.className = 'comment';
+                        
+                        if (isSelected && isCorrect) {
+                            comment.textContent = commentText;
+                            comment.classList.add('correct');
+                            opt.parentNode.insertBefore(comment, opt.nextSibling);
+                        } else if (isSelected && !isCorrect) {
+                            comment.textContent = commentText;
+                            comment.classList.add('incorrect');
+                            opt.parentNode.insertBefore(comment, opt.nextSibling);
+                        } else if (!isSelected && isCorrect && question.type === 'single') {
+                            comment.textContent = commentText;
+                            comment.classList.add('correct');
+                            opt.parentNode.insertBefore(comment, opt.nextSibling);
+                        }
+                    }
+                });
+                
+                if (!hasAnySelected && question.type === 'single') {
+                    options.forEach((opt, optIndex) => {
+                        if (question.options[optIndex].correct) {
+                            const commentText = question.options[optIndex].comment;
+                            if (commentText && commentText.trim() !== '') {
+                                const comment = document.createElement('div');
+                                comment.className = 'comment correct';
+                                comment.textContent = commentText;
+                                opt.parentNode.insertBefore(comment, opt.nextSibling);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            input[type="radio"], input[type="checkbox"] {
+                appearance: none;
+                -webkit-appearance: none;
+                width: 20px;
+                height: 20px;
+                background: #2b323b;
+                border: 2px solid #707580;
+                border-radius: 50%;
+                position: relative;
+                cursor: pointer;
+            }
+            
+            input[type="checkbox"] {
+                border-radius: 4px;
+            }
+            
+            input[type="radio"]:checked, input[type="checkbox"]:checked {
+                background: #cad0de;
+                border-color: #ffffff;
+            }
+            
+            input[type="radio"]:checked::after {
+                content: '';
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background: #2b323b;
+                border-radius: 50%;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            
+            input[type="checkbox"]:checked::after {
+                content: '✓';
+                position: absolute;
+                color: #2b323b;
+                font-size: 14px;
+                font-weight: bold;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+        `;
+        document.head.appendChild(style);
+        </script>
+</body>
+</html>

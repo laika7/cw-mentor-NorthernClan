@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обучение воспитанников</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenMax.min.js"></script>
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background-color: #2b323b;
+    position: relative;
+    overflow-x: hidden;
+    font-family: 'Bookman Old Style', 'Times New Roman', serif;
+}
+
+#bg-img {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: url('https://allwebs.ru/images/2026/03/10/8d2b3a05ad6f235eda6047b66d4968f0.png') center center/cover no-repeat;
+    z-index: 0;
+}
+
+.copyright {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    color: rgba(211, 220, 232, 0.2);
+    font-family: 'Bookman Old Style', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+    z-index: 100;
+    pointer-events: none;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.settings-button {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+    background: #2b323b;
+    color: #d3dce8;
+    border: 1.5px solid #707580;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    opacity: 0.7;
+    z-index: 101;
+    pointer-events: auto;
+}
+
+.settings-button:hover {
+    background: #707580;
+    color: #2b323b;
+    border-color: #d3dce8;
+    opacity: 1;
+}
+
+.settings-panel {
+    position: fixed;
+    top: 60px;
+    right: 15px;
+    width: 280px;
+    background: #2b323b;
+    border: 2px solid #707580;
+    border-radius: 8px;
+    padding: 20px;
+    z-index: 102;
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    pointer-events: auto;
+}
+
+.settings-panel.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.setting-item {
+    margin-bottom: 20px;
+}
+
+.setting-item label {
+    display: block;
+    color: #d3dce8;
+    font-family: 'Bookman Old Style', serif;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.setting-item input[type="range"] {
+    width: 100%;
+    height: 4px;
+    background: #707580;
+    border-radius: 2px;
+    -webkit-appearance: none;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #d3dce8;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #707580;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb:hover {
+    background: #707580;
+}
+
+.track-select {
+    width: 100%;
+    padding: 8px;
+    background: #1e252b;
+    color: #d3dce8;
+    border: 2px solid #707580;
+    border-radius: 4px;
+    font-family: 'Bookman Old Style', serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.track-select option {
+    background: #2b323b;
+    color: #d3dce8;
+}
+
+.current-track {
+    color: #a7b3c3;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.sound-btn {
+    background: #2b323b;
+    color: #d3dce8;
+    border: 1.5px solid #707580;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 5px;
+    width: 100%;
+}
+
+.sound-btn:hover {
+    background: #707580;
+    color: #2b323b;
+    border-color: #d3dce8;
+}
+
+.cutscene {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(43, 50, 59, 0.5);
+    backdrop-filter: blur(5px);
+    transition: opacity 1s ease;
+    pointer-events: none;
+}
+
+.cutscene-text {
+    color: #d3dce8;
+    font-family: Impact, 'Arial Black', sans-serif;
+    font-size: 5rem;
+    text-shadow: 4px 4px 0 #2b323b, 8px 8px 0 rgba(0,0,0,0.5);
+    letter-spacing: 4px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.cutscene-text.visible {
+    opacity: 1;
+}
+
+.dialog-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #2b323b;
+    border-top: 4px solid #707580;
+    padding: 20px 40px 20px 120px;
+    color: #d3dce8;
+    font-size: 1.2rem;
+    z-index: 30;
+    transform: translateY(100%);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -10px 20px rgba(0,0,0,0.5);
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dialog-panel.active {
+    transform: translateY(0);
+}
+
+.dialog-panel::before {
+    content: '';
+    position: absolute;
+    left: 40px;
+    top: 20px;
+    bottom: 20px;
+    width: 4px;
+    background: linear-gradient(to bottom, #d3dce8, #707580);
+    border-radius: 2px;
+}
+
+.speaker-name {
+    font-family: Impact, 'Arial Black', sans-serif;
+    color: #cad0de;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s;
+}
+
+.dialog-panel.active .speaker-name {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.dialog-text {
+    line-height: 1.6;
+    min-height: 60px;
+}
+
+.dialog-text i {
+    color: #a7b3c3;
+}
+
+.dialog-text a {
+    color: #cad0de;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.dialog-text a:hover {
+    color: #ffffff;
+}
+
+.dialog-hint {
+    align-self: flex-end;
+    color: #707580;
+    font-size: 0.9rem;
+    margin-top: 10px;
+    animation: pulse 1.5s infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.dialog-panel.active .dialog-hint {
+    opacity: 1;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+.character {
+    position: fixed;
+    bottom: 120px;
+    right: 5%;
+    width: 280px;
+    height: 350px;
+    z-index: 25;
+    opacity: 0;
+    transform: translateX(50px);
+    transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+    pointer-events: none;
+    background: url('https://allwebs.ru/images/2026/03/10/7457012d89a6c19187e4ac3ab256ebf6.png') center bottom/contain no-repeat;
+    background-position: center 30%;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+}
+
+.character.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.name-input-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(43, 50, 59, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 40;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.name-input-screen.visible {
+    opacity: 1;
+}
+
+.name-input-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #2b323b;
+    padding: 20px 40px;
+    border: 4px solid #707580;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    transform: scale(0.9);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.name-input-screen.visible .name-input-container {
+    transform: scale(1);
+    opacity: 1;
+}
+
+#userNameInput {
+    background: transparent;
+    border: none;
+    color: #d3dce8;
+    font-size: 2rem;
+    font-family: 'Bookman Old Style', serif;
+    outline: none;
+    width: 300px;
+    border-bottom: 2px solid #707580;
+    padding: 5px;
+}
+
+#userNameInput::placeholder {
+    color: #707580;
+    font-size: 1.5rem;
+    font-style: italic;
+}
+
+.ok-button {
+    background: #2b323b;
+    color: #d3dce8;
+    border: 2px solid #707580;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ok-button:hover {
+    background: #707580;
+    color: #2b323b;
+}
+
+.main-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    position: relative;
+    z-index: 10;
+    padding: 20px;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-content.visible {
+    display: flex;
+    opacity: 1;
+}
+
+.blocks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin: 0;
+    width: 100%;
+}
+
+.block-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.block-link {
+    display: inline-block;
+    background-color: #cad0de;
+    color: #2b323b;
+    padding: 20px 40px;
+    font-size: 1.5rem;
+    text-decoration: none;
+    border: 4px solid #707580;
+    font-family: 'Bookman Old Style', serif;
+    font-weight: bold;
+    min-width: 200px;
+    text-align: center;
+    box-shadow: 0 8px 0 #2b323b;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+    cursor: pointer;
+}
+
+.main-content.visible .block-link {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.main-content.visible .block-row:nth-child(1) .block-link {
+    transition-delay: 0.2s;
+}
+
+.main-content.visible .block-row:nth-child(2) .block-link:nth-child(1) {
+    transition-delay: 0.4s;
+}
+
+.main-content.visible .block-row:nth-child(2) .block-link:nth-child(2) {
+    transition-delay: 0.6s;
+}
+
+.main-content.visible .block-row:nth-child(2) .block-link:nth-child(3) {
+    transition-delay: 0.8s;
+}
+
+.main-content.visible .block-row:nth-child(3) .block-link:nth-child(1) {
+    transition-delay: 1.0s;
+}
+
+.main-content.visible .block-row:nth-child(3) .block-link:nth-child(2) {
+    transition-delay: 1.2s;
+}
+
+.main-content.visible .block-row:nth-child(4) .block-link {
+    transition-delay: 1.4s;
+}
+
+.main-link {
+    background-color: #2b323b;
+    color: #d3dce8;
+    border: 4px solid #cad0de;
+    font-size: 2rem;
+    padding: 25px 60px;
+    box-shadow: 0 8px 0 #000000;
+}
+
+.main-link:hover {
+    background-color: #707580;
+    color: #ffffff;
+    border-color: #d3dce8;
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 0 #000000;
+}
+
+.block-link:hover {
+    background-color: #707580;
+    color: #d3dce8;
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 0 #2b323b;
+}
+
+@media (max-width: 768px) {
+    .cutscene-text {
+        font-size: 3rem;
+    }
+    
+    .dialog-panel {
+        padding: 15px 15px 15px 60px;
+    }
+    
+    .dialog-panel::before {
+        left: 20px;
+    }
+    
+    .character {
+        width: 180px;
+        height: 230px;
+        bottom: 100px;
+    }
+    
+    #userNameInput {
+        width: 200px;
+        font-size: 1.5rem;
+    }
+    
+    .block-link {
+        padding: 15px 25px;
+        font-size: 1.2rem;
+        min-width: 150px;
+    }
+    
+    .main-link {
+        font-size: 1.5rem;
+        padding: 20px 40px;
+    }
+    
+    .block-row {
+        gap: 20px;
+    }
+    
+    .copyright {
+        font-size: 0.55rem;
+        top: 8px;
+        left: 8px;
+    }
+    
+    .settings-button {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .settings-panel {
+        width: 240px;
+        top: 50px;
+        right: 10px;
+        padding: 15px;
+    }
+}
+    </style>
+</head>
+<body>
+    <canvas id="bg-img"></canvas>
+    
+    <div class="copyright">ⓒ Воющий</div>
+    
+    <button class="settings-button" id="settingsButton">⚙</button>
+    
+    <div class="settings-panel" id="settingsPanel">
+        <div class="setting-item">
+            <label>Фоновая музыка</label>
+            <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Звук метели</label>
+            <input type="range" id="howlVolume" min="0" max="1" step="0.01" value="0.2">
+        </div>
+        <div class="setting-item">
+            <label>Звук печатания</label>
+            <input type="range" id="typingVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Сменить музыку</label>
+            <select class="track-select" id="trackSelect">
+                <option value="0">Музыка 1</option>
+                <option value="1">Музыка 2</option>
+                <option value="2">Музыка 3</option>
+                <option value="3">Музыка 4</option>
+                <option value="4">Музыка 5</option>
+                <option value="5">Музыка 6</option>
+                <option value="6">Музыка 7</option>
+            </select>
+            <div class="current-track" id="currentTrackDisplay">Сейчас играет: Музыка 1</div>
+        </div>
+    </div>
+    
+    <div class="cutscene" id="cutscene">
+        <div class="cutscene-text" id="cutsceneText">Обучение для воспитанников</div>
+    </div>
+    
+    <div class="dialog-panel" id="dialogPanel">
+        <div class="speaker-name" id="speakerName">Воющий</div>
+        <div class="dialog-text" id="dialogText"></div>
+        <div class="dialog-hint" id="dialogHint">▼</div>
+    </div>
+    
+    <div class="character" id="character"></div>
+    
+    <div class="name-input-screen" id="nameInputScreen">
+        <div class="name-input-container">
+            <input type="text" id="userNameInput" placeholder="введите ваше имя..." maxlength="25" autocomplete="off">
+            <button class="ok-button" id="okButton">OK</button>
+        </div>
+    </div>
+    
+    <div class="main-content" id="mainContent">
+        <div class="blocks-container">
+            <div class="block-row">
+                <a href="https://docs.google.com/document/d/13PsXNCkScRJv7nN9c9VGvRJHE30dbEGAIfFKx77Ia6g/edit?tab=t.0" class="block-link main-link">Уроки</a>
+            </div>
+            <div class="block-row">
+                <a href="excursion.html" class="block-link">Экскурсия</a>
+                <a href="#" class="block-link" id="probnikLink">Пробник ИК</a>
+                <a href="tests.html" class="block-link">Тесты</a>
+            </div>
+            <div class="block-row">
+                <a href="homework.html" class="block-link">Домашка</a>
+                <a href="#" class="block-link" id="praktikiLink">Практики</a>
+            </div>
+            <div class="block-row">
+                <a href="https://docs.google.com/spreadsheets/d/1pYsQWlgjl5XLDq9PDIVNUhJE5RC-XxcrDmeCSXgHjRI/edit?usp=sharing" class="block-link">Моя успеваемость</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let soundEnabled = localStorage.getItem('northSoundEnabled') !== 'false';
+        let typingSoundEnabled = localStorage.getItem('northTypingSoundEnabled') !== 'false';
+        
+        const savedTrackIndex = localStorage.getItem('northTrackIndex');
+        let currentTrackIndex = savedTrackIndex ? parseInt(savedTrackIndex) : 0;
+        const savedTrackTime = localStorage.getItem('northTrackTime');
+        const savedTrackTimeNum = savedTrackTime ? parseFloat(savedTrackTime) : 0;
+        
+        const hasVisited = localStorage.getItem('northHasVisited') === 'true';
+        const savedName = localStorage.getItem('northUserName');
+        
+        const tracks = [
+            'assets/music1.mp3',
+            'assets/music2.mp3',
+            'assets/music3.mp3',
+            'assets/music4.mp3',
+            'assets/music5.mp3',
+            'assets/music6.mp3',
+            'assets/music7.mp3',
+        ];
+        
+        const trackNames = ['Музыка 1', 'Музыка 2', 'Музыка 3', 'Музыка 4', 'Музыка 5', 'Музыка 6', 'Музыка 7'];
+        
+        const backgroundMusic = new Audio();
+        backgroundMusic.src = tracks[currentTrackIndex];
+        
+        const howlSound = new Audio();
+        howlSound.src = 'assets/blizzard.mp3';
+        howlSound.volume = localStorage.getItem('northHowlVolume') ? parseFloat(localStorage.getItem('northHowlVolume')) : 0.2;
+        howlSound.loop = true;
+        
+        const typingSound = new Audio();
+        typingSound.src = 'assets/typing.mp3';
+        typingSound.volume = localStorage.getItem('northTypingVolume') ? parseFloat(localStorage.getItem('northTypingVolume')) : 1;
+        
+        const clickSound = new Audio();
+        clickSound.src = 'assets/click.mp3';
+        clickSound.volume = localStorage.getItem('northClickVolume') ? parseFloat(localStorage.getItem('northClickVolume')) : 0.5;
+        
+        backgroundMusic.loop = false;
+        
+        const settingsButton = document.getElementById('settingsButton');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const musicVolumeSlider = document.getElementById('musicVolume');
+        const howlVolumeSlider = document.getElementById('howlVolume');
+        const typingVolumeSlider = document.getElementById('typingVolume');
+        const trackSelect = document.getElementById('trackSelect');
+        const currentTrackDisplay = document.getElementById('currentTrackDisplay');
+        
+        function playClickSound() {
+            if (soundEnabled) {
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => console.log('Звук клика не может быть воспроизведен:', e));
+            }
+        }
+        
+        settingsButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playClickSound();
+            settingsPanel.classList.toggle('visible');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!settingsPanel.contains(e.target) && !settingsButton.contains(e.target)) {
+                settingsPanel.classList.remove('visible');
+            }
+        });
+        
+        musicVolumeSlider.addEventListener('input', (e) => {
+            backgroundMusic.volume = e.target.value;
+            localStorage.setItem('northMusicVolume', e.target.value);
+        });
+        
+        howlVolumeSlider.addEventListener('input', (e) => {
+            howlSound.volume = e.target.value;
+            localStorage.setItem('northHowlVolume', e.target.value);
+        });
+        
+        typingVolumeSlider.addEventListener('input', (e) => {
+            typingSound.volume = e.target.value;
+            localStorage.setItem('northTypingVolume', e.target.value);
+        });
+        
+        trackSelect.addEventListener('change', (e) => {
+            playClickSound();
+            const wasPlaying = soundEnabled && !backgroundMusic.paused;
+            if (wasPlaying) {
+                backgroundMusic.pause();
+            }
+            currentTrackIndex = parseInt(e.target.value);
+            backgroundMusic.src = tracks[currentTrackIndex];
+            currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+            if (wasPlaying) {
+                backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            }
+            localStorage.setItem('northTrackIndex', currentTrackIndex);
+        });
+        
+        musicVolumeSlider.value = localStorage.getItem('northMusicVolume') || 1;
+        howlVolumeSlider.value = localStorage.getItem('northHowlVolume') || 0.2;
+        typingVolumeSlider.value = localStorage.getItem('northTypingVolume') || 1;
+        backgroundMusic.volume = musicVolumeSlider.value;
+        howlSound.volume = howlVolumeSlider.value;
+        typingSound.volume = typingVolumeSlider.value;
+        trackSelect.value = currentTrackIndex;
+        currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+        
+        function playCurrentTrack() {
+            if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                backgroundMusic.currentTime = savedTrackTimeNum;
+            }
+            backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+        }
+        
+        function saveTrackState() {
+            localStorage.setItem('northTrackIndex', currentTrackIndex);
+            localStorage.setItem('northTrackTime', backgroundMusic.currentTime);
+        }
+        
+        function updateSoundUI() {
+            if (soundEnabled) {
+                playCurrentTrack();
+                howlSound.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            } else {
+                backgroundMusic.pause();
+                howlSound.pause();
+                saveTrackState();
+            }
+            localStorage.setItem('northSoundEnabled', soundEnabled);
+        }
+        
+        backgroundMusic.addEventListener('ended', () => {
+            saveTrackState();
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            backgroundMusic.src = tracks[currentTrackIndex];
+            trackSelect.value = currentTrackIndex;
+            currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+            if (soundEnabled) {
+                backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            }
+            saveTrackState();
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            saveTrackState();
+        });
+        
+        window.addEventListener('load', () => {
+            if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                backgroundMusic.currentTime = savedTrackTimeNum;
+            }
+            updateSoundUI();
+        });
+        
+        updateSoundUI();
+        
+        const canvas = document.getElementById('bg-img');
+        const ctx = canvas.getContext('2d');
+        
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = 500;
+        
+        const snowflakes = [];
+        const snowflakeCount = 999;
+        let activeSnowflakes = 0;
+        
+        const wind = 500;
+        const windVariance = 1.5;
+        const speed = 3;
+        
+        const snowflakeImage = new Image();
+        snowflakeImage.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAulBMVEVHcEz////+/v7////+/v79/f3////x8fH9/f3+/v7+/v7////+/v7////////////////////////////////////////////////+/v7///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+MnUWcAAAAPnRSTlMACQ4GBAoWAQMCDRMQJSIfOlQICxgdSkFyG09hXDcrKUeMLZKgsmmnPoIaL2aHWH4xbaw0d0S8wXu3m5cymMmy7QsAAAVDSURBVHgBzZd3g6JKEMQP99BbzoSYs5jFHDbq9/9ar6qb4aHLxr+uX7jYP6pqmKHn179VGa37sDLyO1/u/aW9f1C/tfAzYr4GYa+23sVLMF9h8OFhd6lkWZZt2/h/qSQMCvmEQNt/+ES0eg4qlUo5KcfxPMvib3+KwOPZz+5UNpv9GxZ+CggZnyDon+JtL4XudDpdDitNCBCwEmbxTgBID97xeHSXF41KQapSqTTKZTBSjk3E72SCAJCe5aXwdHbnc6by+UJlAR1AeEZFAgL9EOA57K8Ucrle1/cDlu/3cjkwFGFzSeTNeBsB+m3tz+d6fnA+dIqszuEc+D0gGjSS9ZAmjdz/yrwFiIEy+wN0z2a12ulUq81mxc6ZCBgBwrETfWS4BBYFNPK57hbtp361Wm028b/+qWYQDfrwiKCPWwATSC8KeH6nWOtXm67rrtdr1wWlbxANRqEiqOEWkKKAnn9gv+u22y2pdttVROAzChFhqYbMdQSOJNDbdmb9prtut5aTyW63myyXLUHMioeAPpCEEO6o4RYAB91z8VR112jf1etHVL2+A2LdrJ5mRfgAIa0EJhkH2BqBLwLay139+LTZzOfzzdNREC59HEJC1ivRxK0CRhAQsG5Ndsen+Wo1GAxWKzCIgIiIIEn+ZgoJgFpVBKB/MJQaAHGsT1prVwg5SdKhiY8Axw36X19Yr0RAhBLOXRAogSuRiS8jQ8znQgAEDIaXEWo6GhGhhCZy2NIEcyQgc/0elAshYCKAl9F0ut/vp9PRCwlw4Tb7M5pYpNVDBMhEAN8AVoPXEdrHqD0IryDsllgLlYClZIyxEO6wjgyhe5j1xcJqCAD6n5+fx2PVcKSJU/HQzf3v4Wo3Sop4kZrr5Q4WXgh4fnh4AGIPwuqpTgmzDj0o4P4a4EQhtHbH+eACAPofH4GAhldKQCrigesQBzAEXcgcPTAEhDiajp/RTwJyEAni4cwQuJBXAB5pXMheIB4YwgssAIASCcPBhh6wDt1bAD2Q4PxNV3K+8YAQmEEEeAVg8iHgDhIQ41YlbFYxD2EIBpB7A5AvCyWUIwlPRkIsxbgCz7oGyLnopcxKtkMJJLA/buGcAIjtqHgKF32X0B+9CM0+VsEA9FWOr4SHU8VI4EKQAAQ2BB086asY9Pgi2SXZC/GiBLMQ3BDHDQmjKYvv8oYvUrXWCXKFchKAO6IUe59pAjviZYRiPx0wgo7PveDEt0L8aNQ9qVsKK8Fj5XK58FChgDUiQIaNhAz1ZVAPfBd0V/Ng4sk2YH892s4EwMEtQHc1Pw/YETShZ+t8hQqPxaY4YAQez0TT+OZ01uMdBDnecb4/PbE/dp6YvZjgwYOE6Hxv8wPD2u3YHwpIdhDf1QuYOHdq/Ma18JFCLVvSTwFcg6wNB8mTin5l9SMnX+l1u43mdnvNfp5nZismAbgpS3ZsUCCi6bKa8nXsBL08IqSDhAjMsWBzVCEhOBRnNc4aMmic5APNBLAGpUQBGiNnDRIwbPhnjEpm2MHAFIiBv3oWJANEg+V50by1PRw6HLg6ncPWlwFBBHwMgAtOnGUOjDLxbbfbANOaGZQcAmjhI4IOnUCAIaUD4yKacbgTk1PQsddCEBx7G2Tk0YyZlXMvB072y1ZOJpjB23IgAkbKjUajwlpczbz3H96b7nnzsGwgyDClk7stApjhBwhzfdD7gyk+nZP/Z/3GB0RQhm17nqPl2XZJp+XPAGY9yOAdSquEbrZzRPwKgCrkHkaMFrvjd5/PEfFrJJvNRfK7d1lzk9X6+ZWY19t/sP4DoePqp9agWnMAAAAASUVORK5CYII=";
+        
+        class Snowflake {
+            constructor(index) {
+                this.index = index;
+                this.reset();
+            }
+            
+            reset() {
+                this.size = this.rand(5, 10);
+                this.alpha = this.rand(0.25, 0.75);
+                
+                if (this.index < snowflakeCount / 100) {
+                    this.size = this.rand(150, 200);
+                    this.alpha = this.alpha / 3.3;
+                } else if (this.index < snowflakeCount / 10) {
+                    this.size = this.rand(19, 33);
+                    this.alpha = this.alpha / 1.5;
+                }
+                
+                this.rot = -this.rand(3, 5);
+                if (this.index % 4 === 0) this.rot = -this.rot;
+                
+                this.x = this.rand(-Math.abs(wind), width + Math.abs(wind));
+                this.y = -this.size - this.rand(0, 500);
+                this.progress = this.rand(0, 0.8);
+                this.duration = (15 - this.size) / speed;
+                this.windOffset = this.rand(wind / windVariance, wind * windVariance);
+            }
+            
+            rand(min, max) {
+                return min + (max - min) * Math.random();
+            }
+            
+            update() {
+                this.progress += 0.016 / this.duration;
+                
+                if (this.progress > 1) {
+                    this.progress = 0;
+                    this.x = this.rand(-Math.abs(wind), width + Math.abs(wind));
+                    this.y = -this.size - this.rand(0, 200);
+                    this.windOffset = this.rand(wind / windVariance, wind * windVariance);
+                }
+                
+                this.y += (height / this.duration) * 0.016;
+                this.x += (this.windOffset / this.duration) * 0.016;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rot * this.progress);
+                ctx.globalAlpha = this.alpha;
+                ctx.drawImage(snowflakeImage, -this.size/2, -this.size/2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+        
+        function initSnowGradually() {
+            if (activeSnowflakes < snowflakeCount) {
+                for (let i = 0; i < 10; i++) {
+                    if (activeSnowflakes < snowflakeCount) {
+                        snowflakes.push(new Snowflake(activeSnowflakes));
+                        activeSnowflakes++;
+                    }
+                }
+            }
+            requestAnimationFrame(initSnowGradually);
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            for (let flake of snowflakes) {
+                flake.update();
+                flake.draw();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        snowflakeImage.onload = () => {
+            initSnowGradually();
+            animate();
+        };
+        
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = 500;
+            
+            snowflakes.length = 0;
+            activeSnowflakes = 0;
+            initSnowGradually();
+        });
+        
+        const cutscene = document.getElementById('cutscene');
+        const cutsceneText = document.getElementById('cutsceneText');
+        const dialogPanel = document.getElementById('dialogPanel');
+        const speakerName = document.getElementById('speakerName');
+        const dialogText = document.getElementById('dialogText');
+        const character = document.getElementById('character');
+        const nameInputScreen = document.getElementById('nameInputScreen');
+        const userNameInput = document.getElementById('userNameInput');
+        const okButton = document.getElementById('okButton');
+        const mainContent = document.getElementById('mainContent');
+        const probnikLink = document.getElementById('probnikLink');
+        
+        let isPrinting = false;
+        let printTimer = null;
+        let currentText = '';
+        let currentIsItalic = false;
+        let probnikDialogActive = false;
+        let probnikDialogIndex = 0;
+        let praktikiDialogActive = false;
+        let praktikiDialogIndex = 0;
+        let dialogStep = 0;
+        let mainDialogTexts = [];
+        let mainDialogIndex = 0;
+        
+        const probnikDialogs = [
+            { text: `Пробник Испытания Карибу – своеобразная проверка от меня, которую тебе нужно запросить перед сдачей настоящего испытания, чтобы проверить готовность и получить разрешение.`, isItalic: false },
+            { text: `Существует два вида пробника: тестовый и практический.`, isItalic: false },
+            { text: `Тестовый пробник подразумевает обычное написание ответов на вопросы мне в личные сообщения.`, isItalic: false },
+            { text: `В практическом пробнике мы с тобой пройдёмся по территории, как на настоящем испытании, где в течение обхода тебе будут заданы вопросы и выданы различные задания.`, isItalic: false },
+            { text: `Чтобы получить пробник, напиши мне в личные сообщения в <a href="https://catwar.su/cat1672106" target="_blank">игре</a> или <a href="https://vk.com/id563101102" target="_blank">ВК</a>.`, isItalic: false },
+        ];
+        
+        const praktikiDialogs = [
+            { text: `Практики представляют собой практическое изучение каких-либо механик в реальном времени.`, isItalic: false },
+            { text: `Всего их три вида: территория, бои, охота.`, isItalic: false },
+            { text: `Не бойся обращаться ко мне за их проведением. Я с радостью ознакомлю тебя с каждой из них, а ты узнаешь больше информации и будешь увереннее чувствовать себя в той сфере деятельности, которую выберешь.`, isItalic: false },
+            { text: `За проведением практики тыкай в личных сообщениях <a href="https://catwar.su/cat1672106" target="_blank">игры</a> или <a href="https://vk.com/id563101102" target="_blank">ВК</a>!`, isItalic: false },
+        ];
+        
+        function printDialog(text, isItalic, callback) {
+            if (printTimer) clearTimeout(printTimer);
+            
+            let index = 0;
+            dialogText.innerHTML = '';
+            isPrinting = true;
+            currentIsItalic = isItalic;
+            currentText = text;
+            
+            function type() {
+                if (index < text.length) {
+                    if (isItalic) {
+                        dialogText.innerHTML = '<i>' + text.substring(0, index + 1) + '</i>';
+                    } else {
+                        dialogText.innerHTML = text.substring(0, index + 1);
+                    }
+                    index++;
+                    
+                    if (typingSoundEnabled && typingSound.volume > 0) {
+                        typingSound.currentTime = 0;
+                        typingSound.play().catch(e => {});
+                    }
+                    
+                    printTimer = setTimeout(type, 30);
+                } else {
+                    isPrinting = false;
+                    printTimer = null;
+                    if (callback) callback();
+                }
+            }
+            
+            type();
+        }
+        
+        function runCutscene() {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    cutsceneText.classList.add('visible');
+                }, 500);
+                
+                setTimeout(() => {
+                    cutsceneText.classList.remove('visible');
+                }, 3500);
+                
+                setTimeout(() => {
+                    cutscene.style.opacity = '0';
+                    setTimeout(() => {
+                        cutscene.style.display = 'none';
+                        resolve();
+                    }, 1000);
+                }, 4000);
+            });
+        }
+        
+        function showProbnikDialog() {
+            if (dialogPanel.classList.contains('active')) return;
+            
+            probnikDialogActive = true;
+            probnikDialogIndex = 0;
+            dialogPanel.classList.add('active');
+            character.classList.add('visible');
+            speakerName.textContent = 'Воющий';
+            printDialog(probnikDialogs[0].text, probnikDialogs[0].isItalic);
+        }
+        
+        function showPraktikiDialog() {
+            if (dialogPanel.classList.contains('active')) return;
+            
+            praktikiDialogActive = true;
+            praktikiDialogIndex = 0;
+            dialogPanel.classList.add('active');
+            character.classList.add('visible');
+            speakerName.textContent = 'Воющий';
+            printDialog(praktikiDialogs[0].text, praktikiDialogs[0].isItalic);
+        }
+        
+        probnikLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            playClickSound();
+            showProbnikDialog();
+        });
+        
+        const praktikiLink = document.getElementById('praktikiLink');
+        praktikiLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            playClickSound();
+            showPraktikiDialog();
+        });
+        
+        function startFirstVisitDialogs() {
+            dialogPanel.classList.add('active');
+            character.classList.add('visible');
+            speakerName.textContent = 'Воющий';
+            dialogStep = 0;
+            mainDialogIndex = 0;
+            mainDialogTexts = [
+                'Привет, мой дорогой воспитанник! Я Воющий, твой наставник. Буду рад ознакомить тебя с нашим кланом.',
+                'Воющий сел рядом с вами, приветливо обвив хвостом.',
+                'Представься!'
+            ];
+            printDialog(mainDialogTexts[0], false);
+        }
+        
+        function startReturnVisitDialogs() {
+            dialogPanel.classList.add('active');
+            character.classList.add('visible');
+            speakerName.textContent = 'Воющий';
+            printDialog(`С возвращением, ${savedName}! Продолжим?`, false);
+        }
+        
+        document.addEventListener('click', function(e) {
+            if (cutscene.style.display !== 'none') return;
+            if (e.target.closest('.settings-panel') || e.target.closest('.settings-button')) return;
+            
+            if (e.target.closest('.block-link') && !e.target.closest('#probnikLink') && !e.target.closest('#praktikiLink')) {
+                playClickSound();
+            }
+            
+            if (nameInputScreen.classList.contains('visible')) {
+                return;
+            }
+            
+            if (dialogPanel.classList.contains('active')) {
+                if (isPrinting) {
+                    if (printTimer) clearTimeout(printTimer);
+                    isPrinting = false;
+                    printTimer = null;
+                    
+                    if (praktikiDialogActive) {
+                        dialogText.innerHTML = praktikiDialogs[praktikiDialogIndex].isItalic ? 
+                            '<i>' + praktikiDialogs[praktikiDialogIndex].text + '</i>' : 
+                            praktikiDialogs[praktikiDialogIndex].text;
+                    } else if (probnikDialogActive) {
+                        dialogText.innerHTML = probnikDialogs[probnikDialogIndex].isItalic ? 
+                            '<i>' + probnikDialogs[probnikDialogIndex].text + '</i>' : 
+                            probnikDialogs[probnikDialogIndex].text;
+                    } else {
+                        dialogText.innerHTML = currentIsItalic ? '<i>' + currentText + '</i>' : currentText;
+                    }
+                } else {
+                    if (praktikiDialogActive) {
+                        if (praktikiDialogIndex < praktikiDialogs.length - 1) {
+                            praktikiDialogIndex++;
+                            printDialog(praktikiDialogs[praktikiDialogIndex].text, praktikiDialogs[praktikiDialogIndex].isItalic);
+                        } else {
+                            praktikiDialogActive = false;
+                            dialogPanel.classList.remove('active');
+                            character.classList.remove('visible');
+                        }
+                    } else if (probnikDialogActive) {
+                        if (probnikDialogIndex < probnikDialogs.length - 1) {
+                            probnikDialogIndex++;
+                            printDialog(probnikDialogs[probnikDialogIndex].text, probnikDialogs[probnikDialogIndex].isItalic);
+                        } else {
+                            probnikDialogActive = false;
+                            dialogPanel.classList.remove('active');
+                            character.classList.remove('visible');
+                        }
+                    } else if (!hasVisited) {
+                        if (dialogStep < mainDialogTexts.length - 1) {
+                            dialogStep++;
+                            const isItalic = (dialogStep === 1);
+                            printDialog(mainDialogTexts[dialogStep], isItalic);
+                        } else if (dialogStep === mainDialogTexts.length - 1) {
+                            dialogStep++;
+                            showNameInput();
+                        } else if (dialogStep === mainDialogTexts.length) {
+                            dialogStep++;
+                            dialogPanel.classList.remove('active');
+                            character.classList.remove('visible');
+                            localStorage.setItem('northHasVisited', 'true');
+                            setTimeout(() => {
+                                mainContent.classList.add('visible');
+                            }, 800);
+                        }
+                    } else {
+                        if (dialogStep === 0) {
+                            dialogStep = 1;
+                            dialogPanel.classList.remove('active');
+                            character.classList.remove('visible');
+                            setTimeout(() => {
+                                mainContent.classList.add('visible');
+                            }, 800);
+                        }
+                    }
+                }
+            }
+        });
+        
+        function showNameInput() {
+            nameInputScreen.style.display = 'flex';
+            setTimeout(() => {
+                nameInputScreen.classList.add('visible');
+            }, 10);
+            
+            if (savedName) {
+                userNameInput.value = savedName;
+            }
+            userNameInput.focus();
+        }
+
+        userNameInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^а-яА-ЯёЁ]/g, '');
+        });
+
+        function submitName() {
+            const name = userNameInput.value.trim();
+            if (name === '') return;
+            
+            localStorage.setItem('northUserName', name);
+            localStorage.setItem('northHasVisited', 'true');
+            
+            nameInputScreen.classList.remove('visible');
+            setTimeout(() => {
+                nameInputScreen.style.display = 'none';
+            }, 500);
+            
+            dialogStep = 3;
+            speakerName.textContent = 'Воющий';
+            printDialog(`Хорошо, ${name}, перейдём к нашему обучению. Надеюсь, для тебя это будет увлекательно!`, false);
+        }
+        
+        userNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitName();
+            }
+        });
+        
+        okButton.addEventListener('click', submitName);
+        
+        window.addEventListener('load', async () => {
+            await runCutscene();
+            if (!hasVisited) {
+                startFirstVisitDialogs();
+            } else {
+                startReturnVisitDialogs();
+            }
+        });
+        
+        window.addEventListener('unload', function() {
+            document.removeEventListener('click', blockOutsideClicks);
+        });
+        </script>
+</body>
+</html>

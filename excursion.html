@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экскурсия</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #2b323b;
+            position: relative;
+            overflow-x: auto;
+            overflow-y: auto;
+            font-family: 'Bookman Old Style', 'Times New Roman', serif;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: auto;
+            overflow-y: auto;
+            z-index: 1;
+        }
+
+        .location-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(3px) brightness(0.7);
+            z-index: 1;
+        }
+
+        .game-field-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(43, 50, 59, 0.3);
+            z-index: 2;
+        }
+
+        .game-field-wrapper {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .game-field {
+            background: rgba(0, 0, 0, 0.6);
+            border: 4px solid #707580;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .location-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .location-name {
+            color: #d3dce8;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 2rem;
+            text-align: center;
+            text-shadow: 2px 2px 0 #2b323b;
+        }
+
+        .learn-button {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 20px;
+            padding: 5px 20px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-shadow: 1px 1px 0 #2b323b;
+            letter-spacing: 1px;
+        }
+
+        .mountain-transition {
+            background-image: url('https://pic.maxiol.com/images2/1773212559.2953829889.1017.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .learn-button:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+        }
+
+        .learn-button.hidden {
+            display: none;
+        }
+
+        .field-table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .field-table td {
+            width: 100px;
+            height: 150px;
+            padding: 0;
+            margin: 0;
+            border: none;
+            position: relative;
+            vertical-align: top;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .cage_items {
+            width: 100px;
+            height: 150px;
+            position: relative;
+        }
+
+        .move_parent {
+            display: block;
+            position: relative;
+            width: 100px;
+            height: 150px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .move_name {
+            display: block;
+            position: absolute;
+            font-size: 11px;
+            bottom: 43px;
+            left: 4px;
+            width: 92px;
+            text-align: center;
+            background-color: RGBA(255, 255, 255, 0.5);
+            border-radius: 10px;
+            padding: 0 3px 1px 3px;
+            margin: 0;
+            word-break: break-word;
+            box-sizing: border-box;
+            color: #2b323b;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .cat-container {
+            width: 100px;
+            height: 150px;
+            position: relative;
+        }
+
+        .cat-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            pointer-events: none;
+        }
+
+        .other-cat {
+            width: 100px;
+            height: 150px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .other-cat .cat-layer {
+            opacity: 0.9;
+        }
+
+        .copyright {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            color: rgba(211, 220, 232, 0.2);
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+            z-index: 100;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .settings-button {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: #2b323b;
+            color: #d3dce8;
+            border: 1.5px solid #707580;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0.7;
+            z-index: 101;
+        }
+
+        .settings-button:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+            opacity: 1;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 60px;
+            right: 15px;
+            width: 280px;
+            background: #2b323b;
+            border: 2px solid #707580;
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 102;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .settings-panel.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .setting-item input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #707580;
+            border-radius: 2px;
+            -webkit-appearance: none;
+        }
+
+        .setting-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #d3dce8;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #707580;
+        }
+
+        .track-select {
+            width: 100%;
+            padding: 8px;
+            background: #1e252b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 4px;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .track-select option {
+            background: #2b323b;
+            color: #d3dce8;
+        }
+
+        .current-track {
+            color: #a7b3c3;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .dialog-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #2b323b;
+            border-top: 4px solid #707580;
+            padding: 20px 40px 20px 120px;
+            color: #d3dce8;
+            font-size: 1.2rem;
+            z-index: 30;
+            transform: translateY(100%);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.5);
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .dialog-panel.active {
+            transform: translateY(0);
+        }
+
+        .dialog-panel::before {
+            content: '';
+            position: absolute;
+            left: 40px;
+            top: 20px;
+            bottom: 20px;
+            width: 4px;
+            background: linear-gradient(to bottom, #d3dce8, #707580);
+            border-radius: 2px;
+        }
+
+        .speaker-name {
+            font-family: Impact, 'Arial Black', sans-serif;
+            color: #cad0de;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s;
+        }
+
+        .dialog-panel.active .speaker-name {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .dialog-text {
+            line-height: 1.6;
+            min-height: 60px;
+        }
+
+        .dialog-text i {
+            color: #a7b3c3;
+        }
+
+        .dialog-hint {
+            align-self: flex-end;
+            color: #707580;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            animation: pulse 1.5s infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .dialog-panel.active .dialog-hint {
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .character {
+            position: fixed;
+            bottom: 120px;
+            right: 5%;
+            width: 280px;
+            height: 350px;
+            z-index: 25;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+            pointer-events: none;
+            background: url('https://allwebs.ru/images/2026/03/10/7457012d89a6c19187e4ac3ab256ebf6.png') center bottom/contain no-repeat;
+            background-position: center 30%;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+        }
+
+        .character.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .fade-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: black;
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: none;
+        }
+
+        .fade-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: #2b323b;
+            color: #d3dce8;
+            border: 1.5px solid #707580;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0.7;
+            z-index: 101;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .game-field-wrapper {
+                justify-content: flex-start;
+            }
+            
+            .field-table td {
+                width: 80px;
+                height: 120px;
+            }
+            
+            .move_name {
+                width: 72px;
+                left: 4px;
+                bottom: 30px;
+                font-size: 10px;
+            }
+            
+            .cat-layer {
+                background-size: 80% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="location-bg" id="locationBg"></div>
+        <div class="game-field-overlay"></div>
+        <div class="game-field-wrapper">
+            <div class="game-field">
+                <div class="location-header">
+                    <div class="location-name" id="locationName">Перевал</div>
+                    <button class="learn-button" id="learnButton">УЗНАТЬ</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="field-table" id="fieldTable"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="copyright">ⓒ Воющий</div>
+    
+    <button class="settings-button" id="settingsButton">⚙</button>
+    <a href="index.html" class="back-button">←</a>
+    
+    <div class="settings-panel" id="settingsPanel">
+        <div class="setting-item">
+            <label>Фоновая музыка</label>
+            <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Звук печатания</label>
+            <input type="range" id="typingVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Сменить музыку</label>
+            <select class="track-select" id="trackSelect">
+                <option value="0">Музыка 1</option>
+                <option value="1">Музыка 2</option>
+                <option value="2">Музыка 3</option>
+                <option value="3">Музыка 4</option>
+                <option value="4">Музыка 5</option>
+                <option value="5">Музыка 6</option>
+                <option value="6">Музыка 7</option>
+            </select>
+            <div class="current-track" id="currentTrackDisplay">Сейчас играет: Музыка 1</div>
+        </div>
+    </div>
+    
+    <div class="dialog-panel" id="dialogPanel">
+        <div class="speaker-name" id="speakerName">Воющий</div>
+        <div class="dialog-text" id="dialogText"></div>
+        <div class="dialog-hint" id="dialogHint">▼</div>
+    </div>
+    
+    <div class="character" id="character"></div>
+    
+    <div class="fade-overlay" id="fadeOverlay"></div>
+
+    <script>
+        let soundEnabled = localStorage.getItem('northSoundEnabled') !== 'false';
+        let typingSoundEnabled = localStorage.getItem('northTypingSoundEnabled') !== 'false';
+        
+        const savedTrackIndex = localStorage.getItem('northTrackIndex');
+        let currentTrackIndex = savedTrackIndex ? parseInt(savedTrackIndex) : 0;
+        const savedTrackTime = localStorage.getItem('northTrackTime');
+        const savedTrackTimeNum = savedTrackTime ? parseFloat(savedTrackTime) : 0;
+        let currentWelcomeType = null;
+
+        const tracks = [
+            'assets/music1.mp3',
+            'assets/music2.mp3',
+            'assets/music3.mp3',
+            'assets/music4.mp3',
+            'assets/music5.mp3',
+            'assets/music6.mp3',
+            'assets/music7.mp3',
+        ];
+
+        const trackNames = ['Музыка 1', 'Музыка 2', 'Музыка 3', 'Музыка 4', 'Музыка 5', 'Музыка 6', 'Музыка 7'];
+
+        const backgroundMusic = new Audio();
+        backgroundMusic.src = tracks[currentTrackIndex];
+
+        const typingSound = new Audio();
+        typingSound.src = 'assets/typing.mp3';
+        typingSound.volume = localStorage.getItem('northTypingVolume') ? parseFloat(localStorage.getItem('northTypingVolume')) : 1;
+
+        backgroundMusic.loop = false;
+
+        const settingsButton = document.getElementById('settingsButton');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const musicVolumeSlider = document.getElementById('musicVolume');
+        const typingVolumeSlider = document.getElementById('typingVolume');
+        const trackSelect = document.getElementById('trackSelect');
+        const currentTrackDisplay = document.getElementById('currentTrackDisplay');
+
+        settingsButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsPanel.classList.toggle('visible');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!settingsPanel.contains(e.target) && !settingsButton.contains(e.target)) {
+                settingsPanel.classList.remove('visible');
+            }
+        });
+
+        musicVolumeSlider.addEventListener('input', (e) => {
+            backgroundMusic.volume = e.target.value;
+            localStorage.setItem('northMusicVolume', e.target.value);
+        });
+
+        typingVolumeSlider.addEventListener('input', (e) => {
+            typingSound.volume = e.target.value;
+            localStorage.setItem('northTypingVolume', e.target.value);
+        });
+
+        trackSelect.addEventListener('change', (e) => {
+            const wasPlaying = soundEnabled && !backgroundMusic.paused;
+            if (wasPlaying) {
+                backgroundMusic.pause();
+            }
+            currentTrackIndex = parseInt(e.target.value);
+            backgroundMusic.src = tracks[currentTrackIndex];
+            currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+            if (wasPlaying) {
+                backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            }
+            localStorage.setItem('northTrackIndex', currentTrackIndex);
+        });
+
+        musicVolumeSlider.value = localStorage.getItem('northMusicVolume') || 1;
+        typingVolumeSlider.value = localStorage.getItem('northTypingVolume') || 1;
+        backgroundMusic.volume = musicVolumeSlider.value;
+        typingSound.volume = typingVolumeSlider.value;
+        trackSelect.value = currentTrackIndex;
+        currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+
+        function playCurrentTrack() {
+            if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                backgroundMusic.currentTime = savedTrackTimeNum;
+            }
+            backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+        }
+
+        function saveTrackState() {
+            localStorage.setItem('northTrackIndex', currentTrackIndex);
+            localStorage.setItem('northTrackTime', backgroundMusic.currentTime);
+        }
+
+        function updateSoundUI() {
+            if (soundEnabled) {
+                playCurrentTrack();
+            } else {
+                backgroundMusic.pause();
+                saveTrackState();
+            }
+            localStorage.setItem('northSoundEnabled', soundEnabled);
+        }
+
+        backgroundMusic.addEventListener('ended', () => {
+            saveTrackState();
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            backgroundMusic.src = tracks[currentTrackIndex];
+            trackSelect.value = currentTrackIndex;
+            currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+            if (soundEnabled) {
+                backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            }
+            saveTrackState();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            saveTrackState();
+        });
+
+        window.addEventListener('load', () => {
+            if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                backgroundMusic.currentTime = savedTrackTimeNum;
+            }
+            updateSoundUI();
+        });
+
+        updateSoundUI();
+
+        const locations = {
+            'перевал': {
+                name: 'Перевал',
+                background: 'https://pic.maxiol.com/images2/1773163035.784318299.89000.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773163035.784318299.89000.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [
+                        { row: 5, col: 9, name: 'Дух Севера', layers: ['https://pic.maxiol.com/thumbs2/1773161412.784318299..png'] },
+                    ],
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'крутой подъём', name: 'Крутой подъём' },
+                        { row: 5, col: 0, nextLocation: 'ельник', name: 'Ельник' },
+                    ],
+                    specialTransitions: [
+                        { row: 3, col: 7, name: 'Склад под снегом', dialog: 'В Складе под снегом хранится пойманная дичь и водный мох! Ты же сейчас не хочешь есть?' },
+                        { row: 2, col: 0, name: 'Прочная ниша', dialog: 'Не стоит заходить в Прочную нишу без уважительной причины, например, если не отписалась о лечении в блоге Шаманов... Всё хорошо?' },
+                        { row: 5, col: 4, name: 'Величавый склон', dialog: 'Куда ты? Мы же отправляемся на экскурсию.' },
+                        { row: 5, col: 8, name: 'Грязное место', dialog: 'Мы же идём на экскурсию!' },
+                    ]
+                },
+                startDialog: "Привет, Имя! Хочешь, чтобы я провёл тебе экскурсию? С удовольствием! Куда пойдём?",
+                returnDialog: "Ну как ты? Лапки устали? Ладно, пойди, отдохни! Позови, если понадобится помощь."
+            },
+            'ельник': {
+                name: 'Ельник',
+                background: 'https://pic.maxiol.com/images2/1773162984.784318299..jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773162984.784318299..jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 9, nextLocation: 'перевал', name: 'Перевал' },
+                        { row: 2, col: 0, nextLocation: 'величественный бор', name: 'Величественный бор' },
+                        { row: 0, col: 3, nextLocation: 'каменистая мель', name: 'Каменистая мель' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Воющий потрусил вперёд, туда, где ветви елей склонялись низко к земле, а затем повернулся.", isItalic: true },
+                    { text: "Это Ельник. Именно отсюда начинают свой путь нижняя или общая ветка пограничного патруля.", isItalic: false },
+                    { text: "В 12:00 МСК здесь появляются крепкие ветки, а в 16:00 МСК вырастают целебные ресурсы, которые собирает травник.", isItalic: false },
+                    { text: "Воющий внимательно огляделся, словно что-то ища. Не найдя своей цели, он удовлетворённо кивнул и вновь обратил на вас внимание.", isItalic: true },
+                    { text: "Если вдруг увидишь здесь лежащий ресурс, а травник или патруль давно прошли, то сообщи о нём шаманам и отнеси в Прочную нишу. Понятно? Чудесно!", isItalic: false },
+                ]
+            },
+            'величественный бор': {
+                name: 'Величественный бор',
+                background: 'https://pic.maxiol.com/images2/1773163726.784318299.89017.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773163726.784318299.89017.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 3, nextLocation: 'дрейфующие льды', name: 'Дрейфующие льды' },
+                        { row: 3, col: 0, nextLocation: 'пихтовый коридор', name: 'Пихтовый коридор' },
+                        { row: 2, col: 9, nextLocation: 'ельник', name: 'Ельник' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Воющий выпрямил ушки, прислушиваясь к окружающим звукам.", isItalic: true },
+                    { text: "Слышишь заливистые трели птиц? Здесь на них проводится охота.", isItalic: false },
+                    { text: "А ещё этот бор богат целебными ресурсами! В 12:00 МСК здесь появляются крепкие ветки, а в 16:00 МСК – целебные ресурсы.", isItalic: false },
+                    { text: "Может, позже пойдёшь и словишь птичку? Хе-хе...", isItalic: false },
+                ]
+            },
+            'пихтовый коридор': {
+                name: 'Пихтовый коридор',
+                background: 'https://pic.maxiol.com/images2/1773164536.784318299.89604.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773164536.784318299.89604.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 2, nextLocation: 'величественный бор', name: 'Величественный бор' },
+                        { row: 5, col: 9, nextLocation: 'узкая прогалина', name: 'Узкая прогалина' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "А здесь начинается сеть локаций активной охоты. Где-то там неподалёку обитает злой барсук-визгун, на которого время от времени ведут охоту.", isItalic: false },
+                    { text: "Обращаю твоё внимание на то, что заходить сюда во время активной охоты, не являясь её участником, запрещено. Проверить, идёт ли она сейчас, можно по отписи в комментариях в блоге Охотников.", isItalic: false },
+                    { text: "Вдалеке послышалось шуршание и топот.", isItalic: true },
+                    { text: "Слышишь? Похоже, барсук там. Сходим, проверим? Заодно объясню тебе нюансы активной охоты!", isItalic: false },
+                ]
+            },
+            'узкая прогалина': {
+                name: 'Узкая прогалина',
+                background: 'https://pic.maxiol.com/images2/1773164981.784318299.89605.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773164981.784318299.89605.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 2, nextLocation: 'пихтовый коридор', name: 'Пихтовый коридор' },
+                        { row: 3, col: 9, nextLocation: 'высокие лиственницы', name: 'Высокие лиственницы' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Вон, а храпит-то как... Ступай потише, чтобы не разбудить... Не бойся! Всё хорошо будет, я с тобой. Ну же, идём!", isItalic: false },
+                ]
+            },
+            'высокие лиственницы': {
+                name: 'Высокие лиственницы',
+                background: 'https://pic.maxiol.com/images2/1773165162.784318299.89606.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773165162.784318299.89606.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [
+                        { row: 4, col: 3, name: 'Барсук-Визгун', layers: ['https://pic.maxiol.com/thumbs2/1773165327.784318299.9012.png'] },
+                    ],
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'узкая прогалина', name: 'Узкая прогалина' },
+                        { row: 4, col: 0, nextLocation: 'редкий сосняк', name: 'Редкий сосняк' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Воющий аккуратно подкрался к кучке листьев, откуда шёл сильный храп и ворчание.", isItalic: true },
+                    { text: "Убедившись, что вы тихо устроились рядом, он начал шептать:", isItalic: true },
+                    { text: "Вон, спит, жирненький, вкусный...", isItalic: false },
+                    { text: "Воитель хихикнул, заметив в вашем взгляде промелькнувшее недоумение.", isItalic: true },
+                    { text: "Что ты так на меня смотришь? Говорю, активную охоту на него ведут.", isItalic: false },
+                    { text: "Кстати, взаимодействовать с ним вне активной охоты нельзя!", isItalic: false },
+                    { text: "Для того, чтобы принять участие, нужно сначала забронировать активную охоту согласно отписи в комментариях блога Охотников.", isItalic: false },
+                    { text: "Делает это один кот, собирающий и организующий активную охоту.", isItalic: false },
+                    { text: "Собирает он с собой единомышленников, но не более трёх! Поскольку в активной охоте может участвовать от двух до четырёх котов.", isItalic: false },
+                    { text: "Собирающий должен убедиться, что все участники, включая его, соответствуют требованиям: должность от воспитанника и выше, а также переходящие на правах воспитанника; 8 уровень боевых умений; отсутствие сна и полное здоровье.", isItalic: false },
+                    { text: "Это необходимо, поскольку барсук, который сейчас лежит и кажется неуклюжей мышью, всё же может показать коготки... У него 8 уровень боевых умений, а ещё он неплохо целится в горло.", isItalic: false },
+                    { text: "Воющий прищурился и облизнулся.", isItalic: true },
+                    { text: "А бегает как мышеголовый... Сначала к одному коту, ударит его, потом к другому поскачет... А как будет у него энергии ниже половины, так трусливо бегать от котов начинает!", isItalic: false },
+                    { text: "Перед началом активной охоты, за 5 минут до назначенного времени, все участники собираются на Величественном боре, а собирающий проводит инструктаж. Заранее можно составить план действий против барсука.", isItalic: false },
+                    { text: "Если в процессе вышло так, что кого-то ранили, он должен спрыгнуть на нижние клетки, выйти из боевого режима и вылизываться, пока не исчезнут кровотечения. А если получилось так, что кого-то ранили до второй степени, то этот участник немедленно должен прекратить активную охоту и вылизаться! Он участвовать в ней более не может. Такого кота нужно доставить в Прочную нишу.", isItalic: false },
+                    { text: "Активная охота длится максимум час. Её можно завершить досрочно по каким-то причинам...", isItalic: false },
+                    { text: "А как закончите, сможете унести лишь 4 обычных или упитанных куска мяса в Склад под снегом. Но на хилые трофеи это не распространяется! Берите сколько душе угодно.", isItalic: false },
+                    { text: "Ох, ну и всё на этом. Пройдём дальше или вернёмся?", isItalic: false },
+                ]
+            },
+            'редкий сосняк': {
+                name: 'Редкий сосняк',
+                background: 'https://pic.maxiol.com/images2/1773166268.784318299.89545.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773166268.784318299.89545.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 8, nextLocation: 'лесистая круча', name: 'Лесистая круча' },
+                        { row: 0, col: 9, nextLocation: 'высокие лиственницы', name: 'Высокие лиственницы' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "На самом деле, здесь больше ничего нет. Просто сеть тупиковых локаций. Но можем посмотреть дальше, если хочешь!", isItalic: false },
+                ]
+            },
+            'лесистая круча': {
+                name: 'Лесистая круча',
+                background: 'https://pic.maxiol.com/images2/1773166268.784318299.89545.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773166268.784318299.89545.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 5, col: 9, nextLocation: 'редкий сосняк', name: 'Редкий сосняк' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Воющий что-то пробормотал себе под нос. Видно, вспомнил, как бился здесь вместе с товарищами против барсука.", isItalic: true },
+                ]
+            },
+            'дрейфующие льды': {
+                name: 'Дрейфующие льды',
+                background: 'https://pic.maxiol.com/images2/1773166645.784318299.89018.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773166645.784318299.89018.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 1, col: 0, nextLocation: 'начало ледяного моста', name: 'Начало ледяного моста' },
+                        { row: 2, col: 9, nextLocation: 'каменистая мель', name: 'Каменистая мель' },
+                        { row: 5, col: 6, nextLocation: 'величественный бор', name: 'Величественный бор' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Кот запрыгнул на толстую льдину и наклонился к воде, подзывая вас.", isItalic: true },
+                    { text: "Здесь можно испить чистой воды. А ещё сюда можно приносить котят на водопой.", isItalic: false },
+                    { text: "Только учти, что тебе нужно внимательно следить за котятами, а также относить их строго по одному из маршрутов:", isItalic: false },
+                    { text: "либо Ельник —> Величественный бор —> Дрейфующие льды, ...", isItalic: false },
+                    { text: "либо Ельник —> Каменистая мель —> Дрейфующие льды.", isItalic: false },
+                    { text: "На Дрейфующих льдах также появляется водяной мох в количестве 7 штук каждый день в 17:00 МСК. Его собирает и наполняет пограничный патруль, а позже относит в Склад под снегом.", isItalic: false },
+                    { text: "Воющий наклонился, чтобы попить, но внезапно получил короткий удар хвостом от какой-то рыбёшки.", isItalic: true },
+                    { text: "Досадно фыркнув, воитель выпрямился, чтобы продолжить путь с вами.", isItalic: true },
+                ]
+            },
+            'начало ледяного моста': {
+                name: 'Начало ледяного моста',
+                background: 'https://pic.maxiol.com/images2/1773167748.784318299.89020.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773167748.784318299.89020.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 7, nextLocation: 'конец ледяного моста', name: 'Конец ледяного моста' },
+                        { row: 5, col: 8, nextLocation: 'дрейфующие льды', name: 'Дрейфующие льды' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Воющий подхватил вас за загривок, затаскивая на неустойчивую глыбу льда.", isItalic: true },
+                    { text: "Спокойно, не шевелись. Эта локация – опасные воды 7 уровня. Лучше не ходи сюда, если нет 4 уровня плавательных умений и есть сон.", isItalic: false },
+                ]
+            },
+            'конец ледяного моста': {
+                name: 'Конец ледяного моста',
+                background: 'https://pic.maxiol.com/images2/1773167856.784318299.89021.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773167856.784318299.89021.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 1, nextLocation: 'святилище гор', name: 'Святилище гор' },
+                        { row: 5, col: 3, nextLocation: 'начало ледяного моста', name: 'Начало ледяного моста' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "А здесь воды ещё страшнее – 8 уровня! Будь аккуратнее, следи за собой, пожалуйста.", isItalic: false },
+                ]
+            },
+            'святилище гор': {
+                name: 'Святилище гор',
+                background: 'https://pic.maxiol.com/images2/1773167894.784318299.89019.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773167894.784318299.89019.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [
+                        { row: 4, col: 4, name: 'Рунический камень', layers: ['https://pic.maxiol.com/images2/1773167951.784318299.1148.png'] },
+                    ],
+                    transitions: [
+                        { row: 5, col: 1, nextLocation: 'конец ледяного моста', name: 'Конец ледяного моста' },
+                        { row: 5, col: 9, nextLocation: 'неумолимое течение', name: 'Неумолимое течение' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Поистине загадочное и удивительное место...", isItalic: false },
+                    { text: "Воющий приблизился к необычному камню, исчерченному рунами, и уж было хотел прикоснуться, но вовремя опомнился. Что-то овладело его разумом в этот короткий момент.", isItalic: true },
+                    { text: "С помощью этого камня старшие воспитанники отправляются на обряд инициации. Он указывает им путь на далёкие-далёкие земли, где будущему воителю предстоит доказать свою храбрость и находчивость и убить росомаху.", isItalic: false },
+                    { text: "Взаимодействовать с камнем в иных случаях запрещено и наказуемо.", isItalic: false },
+                    { text: "Можно спрыгнуть прямиком в Неумолимое течение, переход односторонний.", isItalic: false },
+                ]
+            },
+            'неумолимое течение': {
+                name: 'Неумолимое течение',
+                background: 'https://pic.maxiol.com/images2/1773168298.784318299.89022.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773168298.784318299.89022.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 1, col: 9, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 5, col: 7, nextLocation: 'тёмное низовье', name: 'Тёмное низовье' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Это опасные воды 4 уровня! Не забывай об этом, следи за собой и за своей сонливостью.", isItalic: false },
+                ]
+            },
+            'заиндевевшие кусты голубики': {
+                name: 'Заиндевевшие кусты голубики',
+                background: 'https://pic.maxiol.com/images2/1773168483.784318299.89014.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773168483.784318299.89014.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 1, col: 0, nextLocation: 'мёрзлые земли', name: 'Мёрзлые земли' },
+                        { row: 3, col: 0, nextLocation: 'неумолимое течение', name: 'Неумолимое течение' },
+                        { row: 5, col: 1, nextLocation: 'тёмное низовье', name: 'Тёмное низовье' },
+                        { row: 5, col: 5, nextLocation: 'вороникин кряж', name: 'Вороникин кряж' },
+                        { row: 1, col: 7, nextLocation: 'лавинный конус', name: 'Лавинный конус' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Воющий прошёлся вдоль кустов, а затем остановился и кончиком хвоста указал на мелькнувшую шерсть впереди.", isItalic: true },
+                    { text: "Здесь мы охотимся на разных зверушек.", isItalic: false },
+                    { text: "А ещё в этой местности произрастают целебные ресурсы! Крепкие ветки в 12:00 МСК, остальные – в 16:00 МСК.", isItalic: false },
+                ]
+            },
+            'тёмное низовье': {
+                name: 'Тёмное низовье',
+                background: 'https://pic.maxiol.com/images2/1773169808.784318299.89023.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773169808.784318299.89023.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'неумолимое течение', name: 'Неумолимое течение' },
+                        { row: 0, col: 9, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 1, col: 9, nextLocation: 'вороникин кряж', name: 'Вороникин кряж' },
+                        { row: 5, col: 7, nextLocation: 'каменистая мель', name: 'Каменистая мель' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Это опасные воды 2 уровня. Более ничего примечательного. Да, здесь можно утонуть.", isItalic: false },
+                ]
+            },
+            'каменистая мель': {
+                name: 'Каменистая мель',
+                background: 'https://pic.maxiol.com/images2/1773170157.784318299.89024.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773170157.784318299.89024.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'тёмное низовье', name: 'Тёмное низовье' },
+                        { row: 0, col: 9, nextLocation: 'вороникин кряж', name: 'Вороникин кряж' },
+                        { row: 2, col: 0, nextLocation: 'дрейфующие льды', name: 'Дрейфующие льды' },
+                        { row: 5, col: 7, nextLocation: 'ельник', name: 'Ельник' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Каменистая мель – безопасные воды 0 уровня! Здесь можно спокойно проходить и плавать с низким уровнем сонливости.", isItalic: false },
+                ]
+            },
+            'вороникин кряж': {
+                name: 'Вороникин кряж',
+                background: 'https://pic.maxiol.com/images2/1773170191.784318299.89015.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773170191.784318299.89015.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 2, col: 0, nextLocation: 'тёмное низовье', name: 'Тёмное низовье' },
+                        { row: 5, col: 0, nextLocation: 'каменистая мель', name: 'Каменистая мель' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Здесь произрастают целебные ресурсы! В 12:00 МСК крепкие ветки, в 16:00 МСК – остальные ресурсы.", isItalic: false },
+                ]
+            },
+            'мёрзлые земли': {
+                name: 'Мёрзлые земли',
+                background: 'https://pic.maxiol.com/images2/1773170411.784318299.78010.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773170411.784318299.78010.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 2, col: 9, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 5, col: 4, nextLocation: 'скалистая гряда', name: 'Скалистая гряда' },
+                    ],
+                    specialTransitions: [
+                        { row: 3, col: 0, name: 'Горный перевал', dialog: 'На Горный перевал ни в коем случае нельзя заходить, с него начинается территория Клана Падающей Воды.' },
+                        { row: 5, col: 8, name: 'Плато диких ветров', dialog: 'На Плато диких ветров заходить запрещено, там начинается территория Клана Падающей Воды.' },
+                        { row: 1, col: 3, name: 'Горы', dialog: 'Отсюда, с гор, начинается большой-большой лабиринт горных локаций. Ходить туда можно всем Северным котам от должности воспитанника и переходящим на правах воспитанника. Однако во время путешествий держи ухо востро: неизвестно, кто может повстречаться.' },
+                    ]
+                },
+                dialogs: [
+                    { text: "Воющий вытянул голову, словно искал кого-то вдалеке, за горным перевалом.", isItalic: true },
+                    { text: "Мёрзлые земли – наша граница с Кланом Падающей Воды. Граница! Не путай.", isItalic: false },
+                    { text: "На границах могут находиться те коты, которые состоят во фракции, к которой привязана граница.", isItalic: false },
+                    { text: "И, конечно, те, кому позволили их лидеры. Остальные же будут считаться нарушителями.", isItalic: false },
+                    { text: "Будь приветлив с соседями, здоровайся! И не забывай о вежливости и манерах. Мы же этому тебя учили? Вот и славно.", isItalic: false },
+                    { text: "Также на Мёрзлых землях появляются крепкие ветки в 12:00 МСК и растут целебные ресурсы в 16:00 МСК.", isItalic: false },
+                    { text: "Помни, что мы собираем ресурсы отсюда только по чётным дням. Если вдруг случилось так, что кто-то по ошибке забрал ресурсы не в чётный день, нужно уведомить об этой ситуации Правый Альянс и отнести ресурс обратно.", isItalic: false },
+                ]
+            },
+            'скалистая гряда': {
+                name: 'Скалистая гряда',
+                background: 'https://pic.maxiol.com/images2/1773211145.2953829889.89500.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773211145.2953829889.89500.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 3, col: 0, nextLocation: 'мёрзлые земли', name: 'Мёрзлые земли' },
+                    ],
+                },
+                dialogs: [
+                    { text: "А это Скалистая гряда – наша общая локация с Кланом Падающей Воды. Не граница! Не путай.", isItalic: false },
+                    { text: "Общие локации принадлежат двум и более фракциям в равной мере, то есть их никто никогда не может завоевать.", isItalic: false },
+                    { text: "Заходить на такие локации имеют право только представители тех фракций, которым локация принадлежит, а также тем, кому разрешили лидеры данных фракций.", isItalic: false },
+                    { text: "Воющий дал всласть осмотреть вам местность.", isItalic: true },
+                    { text: "На Скалистой гряде каждое последнее воскресенье месяца в 18:00 МСК проводится Самая Яркая Ночь – мероприятие с Кланом Падающей Воды, где мы общаемся и обмениваемся добычей.", isItalic: false },
+                    { text: "Во время Самой Яркой Ночи посещать Скалистую гряду воспитанникам запрещено, потому что они ещё молоды для такого серьёзного мероприятия.", isItalic: false },
+                    { text: "На 10 клетке 6 ряда расположен бот – Спуск в подезмелье. От обоих кланов выбирается по бойцу. Они спускаются в подземелье, чтобы сразиться с Гневорогом. Этот обряд называется «Танец на костях». Подробнее можешь узнать в блоге Боевых мероприятий!", isItalic: false },
+                ]
+            },
+            'лавинный конус': {
+                name: 'Лавинный конус',
+                background: 'https://pic.maxiol.com/images2/1773171095.784318299.89007.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773171095.784318299.89007.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 7, nextLocation: 'место-где-огни-касаются-земли', name: 'Место-где-огни-касаются-земли' },
+                        { row: 4, col: 2, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 5, col: 8, nextLocation: 'крутой подъём', name: 'Крутой подъём' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Обычное место! Разве что... Именно сюда возвращаются воспитанники с Благословения Завирухи.", isItalic: false },
+                ]
+            },
+            'крутой подъём': {
+                name: 'Крутой подъём',
+                background: 'https://pic.maxiol.com/images2/1773171219.784318299.89006.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773171219.784318299.89006.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 1, nextLocation: 'лавинный конус', name: 'Лавинный конус' },
+                        { row: 2, col: 9, nextLocation: 'переправа', name: 'Переправа' },
+                        { row: 4, col: 9, nextLocation: 'гиблый омут', name: 'Гиблый омут' },
+                        { row: 5, col: 4, nextLocation: 'перевал', name: 'Перевал' },
+                        { row: 0, col: 7, nextLocation: 'хребет', name: 'Хребет' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Осторожно, не скатись вниз!", isItalic: false },
+                    { text: "Воющий подбадривающе боднул вас лбом в плечо.", isItalic: true },
+                    { text: "Слишком круто? Ничего, привыкнешь... Именно здесь начинается верхняя ветка патруля и заканчиваются все маршруты.", isItalic: false },
+                    { text: "А ещё тут появляются крепкие ветки в 12:00 МСК и растут целебные ресурсы ровно в 16:00 МСК.", isItalic: false },
+                    { text: "Так-так... Куда дальше?", isItalic: false },
+                ]
+            },
+            'место-где-огни-касаются-земли': {
+                name: 'Место-где-огни-касаются-земли',
+                background: 'https://pic.maxiol.com/images2/1773171688.784318299.89010.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773171688.784318299.89010.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 5, col: 1, nextLocation: 'лавинный конус', name: 'Лавинный конус' },
+                        { row: 5, col: 8, nextLocation: 'хребет', name: 'Хребет' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "В этом месте нет особенностей. Раньше здесь проводились собрания и, вроде бы, бои...", isItalic: false },
+                    { text: "Но посмотри, как здесь красиво! Не зря эта локация получила такое название, правда?", isItalic: false },
+                    { text: "Воитель вскинул голову вверх, и вы невольно последовали его примеру, любуясь сверкающими огнями.", isItalic: true },
+                ]
+            },
+            'хребет': {
+                name: 'Хребет',
+                background: 'https://pic.maxiol.com/images2/1773171740.784318299.89008.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773171740.784318299.89008.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 2, nextLocation: 'место-где-огни-касаются-земли', name: 'Место-где-огни-касаются-земли' },
+                        { row: 3, col: 8, nextLocation: 'горбатая гора', name: 'Горбатая гора' },
+                        { row: 5, col: 2, nextLocation: 'крутой подъём', name: 'Крутой подъём' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "На Хребте появляются в 12:00 МСК крепкие ветки, а также целебные ресурсы в 16:00 МСК.", isItalic: false },
+                    { text: "Водятся здесь и мыши. Ловить их вне охотничьего патруля запрещено, если тебя не поставили на эту локацию во время сбора.", isItalic: false },
+                    { text: "Мышей также могут ловить по просьбе шаманов.", isItalic: false },
+                ]
+            },
+            'горбатая гора': {
+                name: 'Горбатая гора',
+                background: 'https://pic.maxiol.com/images2/1773172212.784318299.89011.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773172212.784318299.89011.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 1, col: 8, nextLocation: 'ледопад', name: 'Ледопад' },
+                        { row: 3, col: 0, nextLocation: 'хребет', name: 'Хребет' },
+                        { row: 5, col: 7, nextLocation: 'морозный яр', name: 'Морозный яр' },
+                    ],
+                    specialTransitions: [
+                        { row: 4, col: 0, name: 'Пологий склон', dialog: 'Оттуда начинается сеть лазательных локаций, состоящая из 5 уровней скал. Ты можешь спокойно посещать их, но не забудь ознакомиться с требованиями к осмотру расщелины и лазанию на 5 ярусе в блоге Разведчиков.' },
+                    ]
+                },
+                dialogs: [
+                    { text: "Здесь у нас проход на скалы! Начиная с Полого склона, во-о-н там, видишь? Наверху.", isItalic: false },
+                    { text: "Высоко? Да ладно, это ещё что.", isItalic: false },
+                    { text: "Кстати, отсюда можно спуститься в Морозный яр, переход односторонний.", isItalic: false },
+                ]
+            },
+            'ледопад': {
+                name: 'Ледопад',
+                background: 'https://pic.maxiol.com/images2/1773172608.784318299.89012.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773172608.784318299.89012.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 4, col: 1, nextLocation: 'горбатая гора', name: 'Горбатая гора' },
+                        { row: 5, col: 4, nextLocation: 'морозный яр', name: 'Морозный яр' },
+                    ],
+                    specialTransitions: [
+                        { row: 1, col: 0, name: 'Горы', dialog: 'С гор начинается путь к огромному горному лабиринту. Посещать его можно всем Северянам от должности воспитанника, а также переходящим на правах воспитанника. Но держи ухо востро во время своего пути! Неизвестно, кто встретится.' },
+                    ]
+                },
+                dialogs: [
+                    { text: "Обычная локация. Отсюда можно выйти в горы или спуститься к Морозному яру! Переход тоже односторонний.", isItalic: false },
+                ]
+            },
+            'морозный яр': {
+                name: 'Морозный яр',
+                background: 'https://pic.maxiol.com/images2/1773172968.784318299.89013.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773172968.784318299.89013.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 2, col: 0, nextLocation: 'переправа', name: 'Переправа' },
+                        { row: 5, col: 6, nextLocation: 'прорва', name: 'Прорва' },
+                    ],
+                    specialTransitions: [
+                        { row: 5, col: 0, name: 'Мель', dialog: 'Отсюда начинается сеть водных локаций, ведущая ко Дну ледяной реки, где можно нырять, имея 5 уровень плавательных умений.' },
+                    ]
+                },
+                dialogs: [
+                    { text: "Воющий втянул носом морозный воздух и шлёпнулся лапами в воду, обрызгав вас.", isItalic: true },
+                    { text: "Тише-тише! Это была рыба, честно... Мы охотимся на неё как раз тут.", isItalic: false },
+                    { text: "Помимо этого, на Морозном яре есть питьевые клетки. Однако котят сюда на водопой мы не носим!", isItalic: false },
+                    { text: "Также каждый день в 17:00 МСК здесь произрастает обычный мох, который собирает пограничный патруль.", isItalic: false },
+                    { text: "А ещё ты можешь зайти на Мель и дальше пройти по сети водных локаций, чтобы достигнуть Дна ледяной реки и нырнуть. Однако тебе обязательно нужно иметь 5 уровень плавательных умений, а сна не должно быть.", isItalic: false },
+                    { text: "Если во время ныряния обнаружишь целительский ресурс – относи его в Прочную нишу под камень или просто положи на 10 клетке 3 ряда. Следующий патруль заберёт всё, что находится в этой куче и доставит в Прочную нишу.", isItalic: false },
+                    { text: "Обо всём этом подробнее ты можешь ознакомиться в блоге Пловцов!", isItalic: false },
+                ]
+            },
+            'переправа': {
+                name: 'Переправа',
+                background: 'https://pic.maxiol.com/images2/1773173118.784318299.89009.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773173118.784318299.89009.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 2, col: 0, nextLocation: 'крутой подъём', name: 'Крутой подъём' },
+                        { row: 2, col: 9, nextLocation: 'морозный яр', name: 'Морозный яр' },
+                        { row: 5, col: 9, nextLocation: 'манящий обрыв', name: 'Манящий обрыв' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Совершенно обычное место!", isItalic: false },
+                ]
+            },
+            'гиблый омут': {
+                name: 'Гиблый омут',
+                background: 'https://pic.maxiol.com/images2/1773173410.784318299.89026.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773173410.784318299.89026.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 1, col: 0, nextLocation: 'крутой подъём', name: 'Крутой подъём' },
+                        { row: 3, col: 9, nextLocation: 'прорва', name: 'Прорва' },
+                        { row: 5, col: 2, nextLocation: 'шепчущий о гибели бурный поток', name: 'Шепчущий о гибели бурный поток' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Опасная водная локация с 5 уровнем плавательных умений. Смотри в оба!", isItalic: false },
+                ]
+            },
+            'прорва': {
+                name: 'Прорва',
+                background: 'https://pic.maxiol.com/images2/1773209269.2953829889.89025.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773209269.2953829889.89025.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 9, nextLocation: 'морозный яр', name: 'Морозный яр' },
+                        { row: 4, col: 0, nextLocation: 'гиблый омут', name: 'Гиблый омут' },
+                        { row: 5, col: 6, nextLocation: 'неспокойные воды морливой излучины', name: 'Неспокойные воды морливой излучины' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Прорва – опасная водная локация с 6 уровнем плавательных умений.", isItalic: false },
+                    { text: "Воющий начал усерднее грести лапами, а вы последовали его примеру.", isItalic: true },
+                ]
+            },
+            'неспокойные воды морливой излучины': {
+                name: 'Неспокойные воды морливой излучины',
+                background: 'https://pic.maxiol.com/images2/1773209645.2953829889.89578.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773209645.2953829889.89578.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 6, nextLocation: 'прорва', name: 'Прорва' },
+                        { row: 4, col: 0, nextLocation: 'шепчущий о гибели бурный поток', name: 'Шепчущий о гибели бурный поток' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Опасная водная локация с 6 уровнем плавательных умений.", isItalic: false },
+                ]
+            },
+            'шепчущий о гибели бурный поток': {
+                name: 'Шепчущий о гибели бурный поток',
+                background: 'https://pic.maxiol.com/images2/1773209645.2953829889.89578.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773209645.2953829889.89578.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 1, col: 9, nextLocation: 'неспокойные воды морливой излучины', name: 'Неспокойные воды морливой излучины' },
+                        { row: 2, col: 3, nextLocation: 'гиблый омут', name: 'Гиблый омут' },
+                    ],
+                    specialTransitions: [
+                        { row: 5, col: 9, name: 'Крохотный островок средь острых пик', dialog: 'Постой! Туда нельзя. Мы выйдем на сушу в другом месте. Крохотный островок – начало водного лабиринта, где умерщвляют нарушителей. Заходить туда имеют право только вождь, наместник и воевода.' },
+                    ]
+                },
+                dialogs: [
+                    { text: "Опасная водная локация с 6 уровнем плавательных умений.", isItalic: false },
+                    { text: "Здесь расположен переход на Крохотный островок, куда заходить ни в коем случае нельзя.", isItalic: false },
+                    { text: "Слышишь шёпот плескающихся волн? Нет? Ну хорошо.", isItalic: false },
+                ]
+            },
+            'манящий обрыв': {
+                name: 'Манящий обрыв',
+                background: 'https://pic.maxiol.com/images2/1773210560.2953829889.89597.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773210560.2953829889.89597.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 6, nextLocation: 'переправа', name: 'Переправа' },
+                        { row: 4, col: 0, nextLocation: 'неприметная опора', name: 'Неприметная опора' },
+                        { row: 5, col: 7, nextLocation: 'неспокойные воды морливой излучины', name: 'Неспокойные воды морливой излучины' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Здесь есть односторонний переход, ведущий на опасные водные локации.", isItalic: false },
+                ]
+            },
+            'неприметная опора': {
+                name: 'Неприметная опора',
+                background: 'https://pic.maxiol.com/images2/1773210599.2953829889.895451.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773210599.2953829889.895451.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 2, col: 9, nextLocation: 'манящий обрыв', name: 'Манящий обрыв' },
+                        { row: 4, col: 0, nextLocation: 'неприметная опора', name: 'Неприметная опора' },
+                        { row: 4, col: 3, nextLocation: 'рокочущий откос', name: 'Рокочущий откос' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Ничем не примечательная локация.", isItalic: false },
+                ]
+            },
+            'рокочущий откос': {
+                name: 'Рокочущий откос',
+                background: 'https://pic.maxiol.com/images2/1773210599.2953829889.895451.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773210599.2953829889.895451.jpg',
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    characters: [],
+                    transitions: [
+                        { row: 0, col: 2, nextLocation: 'неприметная опора', name: 'Неприметная опора' },
+                        { row: 5, col: 6, nextLocation: 'шепчущий поток', name: 'Шепчущий поток' },
+                    ],
+                    specialTransitions: []
+                },
+                dialogs: [
+                    { text: "Обычная локация, на которой есть односторонний переход к опасной водной локации.", isItalic: false },
+                ]
+            },
+        };
+
+        const VISITED_LOCATIONS_KEY = 'northVisitedLocations';
+        
+        let currentLocation = 'перевал';
+        const savedName = localStorage.getItem('northUserName') || 'воспитанник';
+        
+        let visitedLocations = JSON.parse(localStorage.getItem(VISITED_LOCATIONS_KEY)) || {};
+        
+        const locationBg = document.getElementById('locationBg');
+        const locationName = document.getElementById('locationName');
+        const fieldTable = document.getElementById('fieldTable');
+        const dialogPanel = document.getElementById('dialogPanel');
+        const speakerName = document.getElementById('speakerName');
+        const dialogText = document.getElementById('dialogText');
+        const dialogHint = document.getElementById('dialogHint');
+        const character = document.getElementById('character');
+        const fadeOverlay = document.getElementById('fadeOverlay');
+        const learnButton = document.getElementById('learnButton');
+
+        let isPrinting = false;
+        let printTimer = null;
+        let currentDialogIndex = 0;
+        let currentDialogArray = [];
+        let mainDialogFinished = false;
+        let currentDialogIsItalic = false;
+        let specialDialogActive = false;
+        let currentSpecialText = '';
+        let isReturnVisit = false;
+
+        function printDialog(text, isItalic = false, callback) {
+            if (printTimer) clearTimeout(printTimer);
+            
+            let index = 0;
+            dialogText.innerHTML = '';
+            isPrinting = true;
+            currentDialogIsItalic = isItalic;
+            
+            function type() {
+                if (index < text.length) {
+                    if (isItalic) {
+                        dialogText.innerHTML = '<i>' + text.substring(0, index + 1) + '</i>';
+                    } else {
+                        dialogText.innerHTML = text.substring(0, index + 1);
+                    }
+                    index++;
+                    
+                    if (typingSoundEnabled && typingSound.volume > 0) {
+                        typingSound.currentTime = 0;
+                        typingSound.play().catch(e => {});
+                    }
+                    
+                    printTimer = setTimeout(type, 30);
+                } else {
+                    isPrinting = false;
+                    printTimer = null;
+                    if (callback) callback();
+                }
+            }
+            
+            type();
+        }
+
+        function createCatHTML(layers, isMain = false) {
+            let layersHtml = '';
+            layers.forEach(layer => {
+                layersHtml += `<div class="cat-layer" style="background-image: url('${layer}');"></div>`;
+            });
+            
+            if (isMain) {
+                return `<div class="cat-container">${layersHtml}</div>`;
+            } else {
+                return `<div class="other-cat">${layersHtml}</div>`;
+            }
+        }
+
+        function markLocationAsVisited(locationKey) {
+            visitedLocations[locationKey] = true;
+            localStorage.setItem(VISITED_LOCATIONS_KEY, JSON.stringify(visitedLocations));
+        }
+
+        function isLocationVisited(locationKey) {
+            return visitedLocations[locationKey] === true;
+        }
+
+        function updateLearnButton() {
+            if (currentLocation === 'перевал') {
+                learnButton.classList.add('hidden');
+            } else {
+                if (isLocationVisited(currentLocation)) {
+                    learnButton.classList.remove('hidden');
+                } else {
+                    learnButton.classList.add('hidden');
+                }
+            }
+        }
+
+        function startLocationDialog(forceShow = false) {
+            const location = locations[currentLocation];
+            
+            if (currentLocation === 'перевал') {
+                const hasSeenWelcomeEver = localStorage.getItem('hasSeenWelcomeEver') === 'true';
+                
+                if (!hasSeenWelcomeEver) {
+                    let welcomeText = location.startDialog;
+                    welcomeText = welcomeText.replace('Имя', savedName);
+                    
+                    dialogPanel.classList.add('active');
+                    character.classList.add('visible');
+                    speakerName.textContent = 'Воющий';
+                    currentWelcomeType = 'start';
+                    printDialog(welcomeText, false, () => {
+                        mainDialogFinished = true;
+                    });
+                    
+                    localStorage.setItem('hasSeenWelcomeEver', 'true');
+                } else {
+                    let returnText = location.returnDialog;
+                    returnText = returnText.replace('Имя', savedName);
+                    
+                    dialogPanel.classList.add('active');
+                    character.classList.add('visible');
+                    speakerName.textContent = 'Воющий';
+                    currentWelcomeType = 'return';
+                    printDialog(returnText, false, () => {
+                        mainDialogFinished = true;
+                    });
+                }
+                return;
+            }
+            
+            isReturnVisit = isLocationVisited(currentLocation) && !forceShow;
+            
+            if (!isLocationVisited(currentLocation) || forceShow) {
+                dialogPanel.classList.add('active');
+                character.classList.add('visible');
+                speakerName.textContent = 'Воющий';
+                
+                if (location.dialogs) {
+                    currentDialogArray = location.dialogs;
+                    currentDialogIndex = 0;
+                    printDialog(currentDialogArray[0].text, currentDialogArray[0].isItalic || false, () => {});
+                }
+            } else {
+                dialogPanel.classList.remove('active');
+                character.classList.remove('visible');
+                mainDialogFinished = true;
+            }
+            
+            if (!isLocationVisited(currentLocation)) {
+                markLocationAsVisited(currentLocation);
+            }
+            
+            updateLearnButton();
+        }
+
+        learnButton.addEventListener('click', function() {
+            if (isPrinting) return;
+            
+            startLocationDialog(true);
+        });
+
+        function renderGrid() {
+            const location = locations[currentLocation];
+            if (!location) return;
+            
+            const grid = location.grid;
+            let html = '';
+            
+            fieldTable.style.backgroundImage = `url('${location.fieldBackground}')`;
+            
+            for (let row = 0; row < grid.rows; row++) {
+                html += '<tr>';
+                for (let col = 0; col < grid.cols; col++) {
+                    html += '<td>';
+                    html += '<div class="cage_items">';
+                    
+                    if (row === 0 && col === 0) {
+                        html += createCatHTML(['https://allwebs.ru/images/2026/03/10/7457012d89a6c19187e4ac3ab256ebf6.png'], true);
+                    }
+                    
+                    const otherChar = grid.characters?.find(c => c.row === row && c.col === col);
+                    if (otherChar) {
+                        html += createCatHTML(otherChar.layers, false);
+                    }
+                    
+                    const transition = grid.transitions?.find(t => t.row === row && t.col === col);
+                    if (transition) {
+                        const isMountainTransition = transition.name === 'Горы';
+                        const mountainClass = isMountainTransition ? 'mountain-transition' : '';
+                        
+                        html += `
+                            <span class="move_parent ${mountainClass}" data-type="transition" data-next="${transition.nextLocation}" data-name="${transition.name}">
+                                <span class="move_name">${transition.name}</span>
+                            </span>
+                        `;
+                    }
+                    
+                    const special = grid.specialTransitions?.find(t => t.row === row && t.col === col);
+                    if (special) {
+                        const isMountainTransition = special.name === 'Горы';
+                        const mountainClass = isMountainTransition ? 'mountain-transition' : '';
+                        
+                        html += `
+                            <span class="move_parent ${mountainClass}" data-type="special" data-dialog="${special.dialog.replace(/"/g, '&quot;')}" data-name="${special.name}">
+                                <span class="move_name">${special.name}</span>
+                            </span>
+                        `;
+                    }
+                    
+                    html += '</div>';
+                    html += '</td>';
+                }
+                html += '</tr>';
+            }
+            
+            fieldTable.innerHTML = html;
+            
+            document.querySelectorAll('.move_parent').forEach(parent => {
+                parent.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (isPrinting) return;
+                    
+                    const type = this.dataset.type;
+                    
+                    if (type === 'transition') {
+                        if (!mainDialogFinished) return;
+                        
+                        const nextLocation = this.dataset.next;
+                        if (nextLocation && locations[nextLocation]) {
+                            dialogPanel.classList.remove('active');
+                            character.classList.remove('visible');
+                            
+                            fadeOverlay.classList.add('active');
+                            setTimeout(() => {
+                                currentLocation = nextLocation;
+                                locationBg.style.backgroundImage = `url('${locations[nextLocation].background}')`;
+                                locationName.textContent = locations[nextLocation].name;
+                                renderGrid();
+                                
+                                mainDialogFinished = false;
+                                startLocationDialog();
+                                
+                                fadeOverlay.classList.remove('active');
+                            }, 1000);
+                        }
+                    } else if (type === 'special') {
+                        if (!mainDialogFinished) return;
+                        
+                        const specialDialog = this.dataset.dialog;
+                        if (specialDialog) {
+                            specialDialogActive = true;
+                            currentSpecialText = specialDialog;
+                            dialogPanel.classList.add('active');
+                            character.classList.add('visible');
+                            speakerName.textContent = 'Воющий';
+                            printDialog(specialDialog, false, () => {
+                                specialDialogActive = true;
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.settings-panel') || e.target.closest('.settings-button')) return;
+            if (e.target.closest('.move_parent')) return;
+            if (e.target === learnButton) return;
+            
+            if (dialogPanel.classList.contains('active')) {
+                if (isPrinting) {
+                    if (printTimer) clearTimeout(printTimer);
+                    isPrinting = false;
+                    printTimer = null;
+                    
+                    if (specialDialogActive) {
+                        dialogText.innerHTML = currentDialogIsItalic ? '<i>' + currentSpecialText + '</i>' : currentSpecialText;
+                    } else if (currentLocation === 'перевал') {
+                        if (currentWelcomeType === 'start') {
+                            let welcomeText = locations['перевал'].startDialog;
+                            welcomeText = welcomeText.replace('Имя', savedName);
+                            dialogText.innerHTML = currentDialogIsItalic ? '<i>' + welcomeText + '</i>' : welcomeText;
+                        } else {
+                            let returnText = locations['перевал'].returnDialog;
+                            returnText = returnText.replace('Имя', savedName);
+                            dialogText.innerHTML = currentDialogIsItalic ? '<i>' + returnText + '</i>' : returnText;
+                        }
+                    } else if (currentDialogArray[currentDialogIndex]) {
+                        let dialog = currentDialogArray[currentDialogIndex];
+                        dialogText.innerHTML = dialog.isItalic ? '<i>' + dialog.text + '</i>' : dialog.text;
+                    }
+                } else {
+                    if (specialDialogActive) {
+                        specialDialogActive = false;
+                        dialogPanel.classList.remove('active');
+                        character.classList.remove('visible');
+                    } else if (currentLocation !== 'перевал' && currentDialogArray && currentDialogArray.length > 0) {
+                        if (currentDialogIndex < currentDialogArray.length - 1) {
+                            currentDialogIndex++;
+                            let nextDialog = currentDialogArray[currentDialogIndex];
+                            printDialog(nextDialog.text, nextDialog.isItalic || false);
+                        } else {
+                            dialogPanel.classList.remove('active');
+                            character.classList.remove('visible');
+                            mainDialogFinished = true;
+                        }
+                    } else {
+                        dialogPanel.classList.remove('active');
+                        character.classList.remove('visible');
+                        mainDialogFinished = true;
+                    }
+                }
+            }
+        });
+
+        window.addEventListener('load', () => {
+            locationBg.style.backgroundImage = `url('${locations[currentLocation].background}')`;
+            locationName.textContent = locations[currentLocation].name;
+            renderGrid();
+            startLocationDialog();
+            updateLearnButton();
+        });
+    </script>
+</body>
+</html>
