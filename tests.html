@@ -1027,21 +1027,21 @@
                     question: "Что выдаётся за нарушение правил?",
                     type: "single",
                     options: [
-                        { text: "Поощрение", correct: true },
-                        { text: "Тёмные баллы", correct: true },
-                        { text: "Баллы нарушений", correct: true },
+                        { text: "Поощрение", correct: false },
+                        { text: "Тёмные баллы", correct: false },
+                        { text: "Баллы нарушений", correct: false },
                         { text: "Чёрные баллы", correct: true },
                     ]
                 },
                 {
-                    question: "Какие наказания существуют в клане?",
+                    question: "Какие меры наказаний в клане существуют за нарушения правил?",
                     type: "multiple",
                     options: [
                         { text: "Подстилки", correct: true },
                         { text: "Умерщвление", correct: true },
                         { text: "Выдача чёрных баллов", correct: true },
                         { text: "Изгнание", correct: true },
-                        { text: "Предупреждение", correct: false },
+                        { text: "Предупреждение", correct: true },
                     ]
                 },
                 {
@@ -1120,9 +1120,9 @@
                     question: "Кто собирает мох с Морозного яра?",
                     type: "single",
                     options: [
-                        { text: "Любой кот", correct: true },
+                        { text: "Любой кот", correct: false },
                         { text: "Шаманы и их помощники", correct: false },
-                        { text: "Патруль", correct: false },
+                        { text: "Патруль", correct: true },
                         { text: "Травник", correct: false },
                     ]
                 },
@@ -1254,7 +1254,7 @@
                     ]
                 },
                 {
-                    question: "Можно ли изменить скрытые параметры?",
+                    question: "Можно ли изменить боевые параметры?",
                     type: "single",
                     options: [
                         { text: "Да", correct: true },
@@ -1262,7 +1262,7 @@
                     ]
                 },
                 {
-                    question: "Отметь существующие скрытые параметры",
+                    question: "Отметь существующие боевые параметры",
                     type: "multiple",
                     options: [
                         { text: "Стрела", correct: true },
