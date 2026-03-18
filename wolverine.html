@@ -1,0 +1,3985 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нападение росомахи</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #2b323b;
+            position: relative;
+            overflow-x: auto;
+            overflow-y: auto;
+            font-family: 'Bookman Old Style', 'Times New Roman', serif;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: auto;
+            overflow-y: auto;
+            z-index: 1;
+        }
+
+        .location-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(3px) brightness(0.7);
+            z-index: 1;
+        }
+
+        .game-field-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(43, 50, 59, 0.3);
+            z-index: 2;
+        }
+
+        .game-field-wrapper {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .game-field {
+            background: rgba(0, 0, 0, 0.6);
+            border: 4px solid #707580;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .location-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .location-name {
+            color: #d3dce8;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 2rem;
+            text-align: center;
+            text-shadow: 2px 2px 0 #2b323b;
+        }
+
+        .timer-display {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 20px;
+            padding: 5px 20px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .field-table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .field-table td {
+            width: 100px;
+            height: 150px;
+            padding: 0;
+            margin: 0;
+            border: none;
+            position: relative;
+            vertical-align: top;
+        }
+
+        .cage_items {
+            width: 100px;
+            height: 150px;
+            position: relative;
+        }
+
+        .move_parent {
+            display: block;
+            position: relative;
+            width: 100px;
+            height: 150px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .move_parent.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .move_name {
+            display: block;
+            position: absolute;
+            font-size: 11px;
+            bottom: 43px;
+            left: 4px;
+            width: 92px;
+            text-align: center;
+            background-color: RGBA(255, 255, 255, 0.5);
+            border-radius: 10px;
+            padding: 0 3px 1px 3px;
+            margin: 0;
+            word-break: break-word;
+            box-sizing: border-box;
+            color: #2b323b;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .cat-container {
+            width: 100px;
+            height: 150px;
+            position: relative;
+            z-index: 15;
+        }
+
+        .cat-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            pointer-events: none;
+        }
+
+        .other-cat {
+            width: 100px;
+            height: 150px;
+            position: relative;
+            z-index: 15;
+        }
+
+        .other-cat .cat-layer {
+            opacity: 0.9;
+        }
+
+        .wolverine {
+            width: 100px;
+            height: 150px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .copyright {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            color: rgba(211, 220, 232, 0.2);
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+            z-index: 100;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .settings-button {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: #2b323b;
+            color: #d3dce8;
+            border: 1.5px solid #707580;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0.7;
+            z-index: 101;
+        }
+
+        .settings-button:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+            opacity: 1;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 60px;
+            right: 15px;
+            width: 280px;
+            background: #2b323b;
+            border: 2px solid #707580;
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 102;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .settings-panel.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .setting-item input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #707580;
+            border-radius: 2px;
+            -webkit-appearance: none;
+        }
+
+        .setting-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #d3dce8;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #707580;
+        }
+
+        .track-select {
+            width: 100%;
+            padding: 8px;
+            background: #1e252b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 4px;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .track-select option {
+            background: #2b323b;
+            color: #d3dce8;
+        }
+
+        .current-track {
+            color: #a7b3c3;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .dialog-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #2b323b;
+            border-top: 4px solid #707580;
+            padding: 20px 40px 20px 120px;
+            color: #d3dce8;
+            font-size: 1.2rem;
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.5);
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .dialog-panel.active {
+            transform: translateY(0);
+        }
+
+        .dialog-panel::before {
+            content: '';
+            position: absolute;
+            left: 40px;
+            top: 20px;
+            bottom: 20px;
+            width: 4px;
+            background: linear-gradient(to bottom, #d3dce8, #707580);
+            border-radius: 2px;
+        }
+
+        .speaker-name {
+            font-family: Impact, 'Arial Black', sans-serif;
+            color: #cad0de;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s;
+        }
+
+        .dialog-panel.active .speaker-name {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .dialog-text {
+            line-height: 1.6;
+            min-height: 60px;
+        }
+
+        .dialog-text i {
+            color: #a7b3c3;
+        }
+
+        .dialog-hint {
+            align-self: flex-end;
+            color: #707580;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            animation: pulse 1.5s infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .dialog-panel.active .dialog-hint {
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .choice-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(43, 50, 59, 0.95);
+            border: 2px solid #707580;
+            border-radius: 12px;
+            padding: 25px;
+            z-index: 200;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            min-width: 320px;
+            max-width: 400px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .choice-panel.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        .choice-title {
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0 #2b323b;
+            border-bottom: 1px solid #707580;
+            padding-bottom: 10px;
+        }
+
+        .choice-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .choice-btn {
+            background: rgba(43, 50, 59, 0.9);
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .choice-btn:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .choice-btn.correct {
+            border-color: #41CD70;
+            background: rgba(65, 205, 112, 0.2);
+            color: #41CD70;
+        }
+
+        .choice-btn.correct:hover {
+            background: #41CD70;
+            color: #2b323b;
+        }
+
+        .choice-feedback {
+            color: #a7b3c3;
+            font-size: 0.9rem;
+            padding: 12px 0 0 0;
+            text-align: center;
+            min-height: 20px;
+            font-style: italic;
+            border-top: 1px solid rgba(112, 117, 128, 0.5);
+            margin-top: 5px;
+        }
+
+        .safe-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(43, 50, 59, 0.95);
+            border: 4px solid #41CD70;
+            border-radius: 8px;
+            padding: 40px 80px;
+            color: #41CD70;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 2.5rem;
+            text-align: center;
+            z-index: 300;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        }
+
+        .safe-message.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        .death-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(139, 0, 0, 0.7);
+            z-index: 998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+        }
+
+        .death-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .message-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #d3dce8;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 3rem;
+            text-shadow: 4px 4px 0 #2b323b, 8px 8px 0 rgba(0,0,0,0.5);
+            letter-spacing: 4px;
+            text-align: center;
+            z-index: 1000;
+            background: rgba(43, 50, 59, 0.8);
+            padding: 40px 80px;
+            border: 4px solid #707580;
+            border-radius: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .message-overlay.visible {
+            display: flex;
+        }
+
+        .try-again-button {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 4px solid #cad0de;
+            padding: 15px 40px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 0 #000000;
+            letter-spacing: 2px;
+        }
+
+        .try-again-button:hover {
+            background: #707580;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0 #000000;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: #2b323b;
+            color: #d3dce8;
+            border: 1.5px solid #707580;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0.7;
+            z-index: 101;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+            opacity: 1;
+        }
+
+        .action-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            display: flex;
+            gap: 20px;
+            z-index: 50;
+        }
+
+        .action-button {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 20px;
+            padding: 10px 25px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-shadow: 1px 1px 0 #2b323b;
+            letter-spacing: 1px;
+        }
+
+        .action-button:hover:not(.disabled) {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+        }
+
+        .action-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .fight-mode {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #2b323b;
+            border: 4px solid #ff4444;
+            border-radius: 8px;
+            padding: 10px 20px;
+            color: #ff4444;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            z-index: 50;
+            animation: pulse 1.5s infinite;
+        }
+
+        .arrow {
+            height: 10px;
+            position: absolute;
+            margin: 0;
+            padding: 1px 0 0 9px;
+            z-index: 30;
+            box-sizing: content-box;
+            pointer-events: none;
+        }
+
+        .arrow-paws {
+            background: url('https://pic.maxiol.com/images2/1773672244.784318299.arrowteeth.png') 0 0 no-repeat;
+            width: 100px;
+            height: 25px;
+        }
+
+        .arrow table, .arrow td {
+            height: 5px !important;
+            padding: 0;
+            margin: 0;
+        }
+
+        .arrow_green {
+            background: #41CD70;
+        }
+
+        .catWithArrow {
+            position: relative;
+            display: block;
+            width: 100px;
+            height: 150px;
+        }
+
+        @media (max-width: 768px) {
+            .game-field-wrapper {
+                justify-content: flex-start;
+            }
+            
+            .field-table td {
+                width: 80px;
+                height: 120px;
+            }
+            
+            .move_name {
+                width: 72px;
+                left: 4px;
+                bottom: 30px;
+                font-size: 10px;
+            }
+            
+            .cat-layer {
+                background-size: 80% !important;
+            }
+            
+            .message-overlay {
+                font-size: 2rem;
+                padding: 30px 40px;
+            }
+            
+            .action-bar {
+                flex-direction: column;
+                bottom: 10px;
+                padding: 10px;
+            }
+            
+            .choice-panel {
+                min-width: 280px;
+                padding: 15px;
+            }
+            
+            .choice-title {
+                font-size: 1.3rem;
+                margin-bottom: 12px;
+            }
+            
+            .choice-btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="location-bg" id="locationBg"></div>
+        <div class="game-field-overlay"></div>
+        <div class="game-field-wrapper">
+            <div class="game-field">
+                <div class="location-header">
+                    <div class="location-name" id="locationName">Перевал</div>
+                    <div class="timer-display" id="timerDisplay">0 с.</div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="field-table" id="fieldTable"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="copyright">ⓒ Воющий</div>
+    
+    <button class="settings-button" id="settingsButton">⚙</button>
+    <a href="emergency.html" class="back-button">←</a>
+    
+    <div class="settings-panel" id="settingsPanel">
+        <div class="setting-item">
+            <label>Фоновая музыка</label>
+            <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Звук печатания</label>
+            <input type="range" id="typingVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Сменить музыку</label>
+            <select class="track-select" id="trackSelect">
+                <option value="0">Музыка 1</option>
+                <option value="1">Музыка 2</option>
+                <option value="2">Музыка 3</option>
+                <option value="3">Музыка 4</option>
+                <option value="4">Музыка 5</option>
+                <option value="5">Музыка 6</option>
+                <option value="6">Музыка 7</option>
+            </select>
+            <div class="current-track" id="currentTrackDisplay">Сейчас играет: Музыка 1</div>
+        </div>
+    </div>
+    
+    <div class="dialog-panel" id="dialogPanel">
+        <div class="speaker-name" id="speakerName">Вы</div>
+        <div class="dialog-text" id="dialogText"></div>
+        <div class="dialog-hint" id="dialogHint">▼</div>
+    </div>
+    
+    <div class="action-bar" id="actionBar">
+        <button class="action-button" id="cancelMoveBtn">ОТМЕНИТЬ ПЕРЕХОД</button>
+    </div>
+    
+    <div class="fight-mode" id="fightMode" style="display: none;">БОЕВОЙ РЕЖИМ</div>
+    
+    <div class="message-overlay" id="messageOverlay">
+        <div id="messageText"></div>
+        <button class="try-again-button" id="tryAgainBtn">ПОПРОБОВАТЬ СНОВА</button>
+    </div>
+    
+    <div class="choice-panel" id="choicePanel">
+        <div class="choice-title">Куда бежать?</div>
+        <div class="choice-buttons" id="choiceButtons"></div>
+        <div class="choice-feedback" id="choiceFeedback"></div>
+    </div>
+    
+    <div class="safe-message" id="safeMessage">Ты в безопасности! Молодец!</div>
+    
+    <div class="death-overlay" id="deathOverlay"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script>
+        let soundEnabled = localStorage.getItem('northSoundEnabled') !== 'false';
+        let typingSoundEnabled = localStorage.getItem('northTypingSoundEnabled') !== 'false';
+        let wolverineLocation = null;
+        let meetingDialogActive = false;
+        let playerSavedTime = 0;
+        let wolverineSavedTime = 0;
+        let wolverineTargetTransition = null;
+        let wasPlayerMoving = false;
+        let wasWolverineMoving = false;
+        let initialDialogActive = false;
+        let dialogCooldown = false;
+        let meetingDialogShown = false;
+        let arrowAnimationFrame = null;
+        let targetArrowAngle = 0;
+        let currentArrowAngle = 0;
+        let playerMoveComplete = false;
+        let wolverineMoveComplete = false;
+        let meetingDialogStage = 0;
+        let escapeAttempted = false;
+        let choiceComments = [];
+        let choiceCommentIndex = 0;
+        let currentChoice = '';
+        let currentChoiceData = null;
+        let waitingForChoice = false;
+        let wasWolverineActive = false;
+        let wasWolverineLocation = null;
+        let wasWolverineRow = 0;
+        let wasWolverineCol = 0;
+                
+        const savedTrackIndex = localStorage.getItem('northTrackIndex');
+        let currentTrackIndex = savedTrackIndex ? parseInt(savedTrackIndex) : 0;
+        const savedTrackTime = localStorage.getItem('northTrackTime');
+        const savedTrackTimeNum = savedTrackTime ? parseFloat(savedTrackTime) : 0;
+    
+        const tracks = [
+            'assets/music1.mp3',
+            'assets/music2.mp3',
+            'assets/music3.mp3',
+            'assets/music4.mp3',
+            'assets/music5.mp3',
+            'assets/music6.mp3',
+            'assets/music7.mp3',
+        ];
+    
+        const trackNames = ['Музыка 1', 'Музыка 2', 'Музыка 3', 'Музыка 4', 'Музыка 5', 'Музыка 6', 'Музыка 7'];
+    
+        const backgroundMusic = new Audio();
+        backgroundMusic.src = tracks[currentTrackIndex];
+        const dangerMusic = new Audio();
+        dangerMusic.src = 'assets/danger.mp3';
+        dangerMusic.loop = true;
+    
+        const typingSound = new Audio();
+        typingSound.src = 'assets/typing.mp3';
+        typingSound.volume = localStorage.getItem('northTypingVolume') ? parseFloat(localStorage.getItem('northTypingVolume')) : 1;
+    
+        const clickSound = new Audio();
+        clickSound.src = 'assets/click.mp3';
+        clickSound.volume = localStorage.getItem('northClickVolume') ? parseFloat(localStorage.getItem('northClickVolume')) : 0.5;
+    
+        backgroundMusic.loop = false;
+    
+        const settingsButton = document.getElementById('settingsButton');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const musicVolumeSlider = document.getElementById('musicVolume');
+        const typingVolumeSlider = document.getElementById('typingVolume');
+        const trackSelect = document.getElementById('trackSelect');
+        const currentTrackDisplay = document.getElementById('currentTrackDisplay');
+    
+        function playClickSound() {
+            if (soundEnabled) {
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => console.log('Звук клика не может быть воспроизведен:', e));
+            }
+        }
+    
+        settingsButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playClickSound();
+            settingsPanel.classList.toggle('visible');
+        });
+    
+        document.addEventListener('click', (e) => {
+            if (!settingsPanel.contains(e.target) && !settingsButton.contains(e.target)) {
+                settingsPanel.classList.remove('visible');
+            }
+        });
+    
+        musicVolumeSlider.addEventListener('input', (e) => {
+            backgroundMusic.volume = e.target.value;
+            localStorage.setItem('northMusicVolume', e.target.value);
+        });
+    
+        typingVolumeSlider.addEventListener('input', (e) => {
+            typingSound.volume = e.target.value;
+            localStorage.setItem('northTypingVolume', e.target.value);
+        });
+
+        musicVolumeSlider.addEventListener('input', (e) => {
+            backgroundMusic.volume = e.target.value;
+            dangerMusic.volume = e.target.value;
+            localStorage.setItem('northMusicVolume', e.target.value);
+        });
+    
+        trackSelect.addEventListener('change', (e) => {
+            const wasPlaying = soundEnabled && !backgroundMusic.paused;
+            if (wasPlaying) {
+                backgroundMusic.pause();
+            }
+            currentTrackIndex = parseInt(e.target.value);
+            backgroundMusic.src = tracks[currentTrackIndex];
+            currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+            if (wasPlaying) {
+                backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            }
+            localStorage.setItem('northTrackIndex', currentTrackIndex);
+        });
+    
+        musicVolumeSlider.value = localStorage.getItem('northMusicVolume') || 1;
+        typingVolumeSlider.value = localStorage.getItem('northTypingVolume') || 1;
+        backgroundMusic.volume = musicVolumeSlider.value;
+        dangerMusic.volume = musicVolumeSlider.value;
+        typingSound.volume = typingVolumeSlider.value;
+        trackSelect.value = currentTrackIndex;
+        currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+    
+        function playCurrentTrack() {
+            if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                backgroundMusic.currentTime = savedTrackTimeNum;
+            }
+            backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+        }
+    
+        function saveTrackState() {
+            localStorage.setItem('northTrackIndex', currentTrackIndex);
+            localStorage.setItem('northTrackTime', backgroundMusic.currentTime);
+        }
+    
+        function updateSoundUI() {
+            if (soundEnabled) {
+                playCurrentTrack();
+            } else {
+                backgroundMusic.pause();
+                saveTrackState();
+            }
+            localStorage.setItem('northSoundEnabled', soundEnabled);
+        }
+    
+        backgroundMusic.addEventListener('ended', () => {
+            saveTrackState();
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            backgroundMusic.src = tracks[currentTrackIndex];
+            trackSelect.value = currentTrackIndex;
+            currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+            if (soundEnabled) {
+                backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            }
+            saveTrackState();
+        });
+    
+        window.addEventListener('beforeunload', () => {
+            saveTrackState();
+        });
+    
+        window.addEventListener('load', () => {
+            if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                backgroundMusic.currentTime = savedTrackTimeNum;
+            }
+            updateSoundUI();
+            startGame();
+        });
+    
+        updateSoundUI();
+    
+        const locations = {
+            'перевал': {
+                name: 'Перевал',
+                background: 'https://pic.maxiol.com/images2/1773163035.784318299.89000.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773163035.784318299.89000.jpg',
+                characters: [
+                    { row: 5, col: 9, name: 'Дух Севера', layers: ['https://pic.maxiol.com/thumbs2/1773161412.784318299..png'] }
+                ],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'крутой подъём', name: 'Крутой подъём' },
+                        { row: 5, col: 0, nextLocation: 'ельник', name: 'Ельник' }
+                    ],
+                    specialTransitions: [
+                        { row: 3, col: 7, name: 'Склад под снегом' },
+                        { row: 2, col: 0, name: 'Прочная ниша' },
+                        { row: 5, col: 4, name: 'Величавый склон' },
+                        { row: 5, col: 8, name: 'Грязное место' }
+                    ]
+                }
+            },
+            'ельник': {
+                name: 'Ельник',
+                background: 'https://pic.maxiol.com/images2/1773162984.784318299..jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773162984.784318299..jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 9, nextLocation: 'перевал', name: 'Перевал' },
+                        { row: 2, col: 0, nextLocation: 'величественный бор', name: 'Величественный бор' },
+                        { row: 0, col: 3, nextLocation: 'каменистая мель', name: 'Каменистая мель' }
+                    ]
+                }
+            },
+            'величественный бор': {
+                name: 'Величественный бор',
+                background: 'https://pic.maxiol.com/images2/1773163726.784318299.89017.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773163726.784318299.89017.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 3, nextLocation: 'дрейфующие льды', name: 'Дрейфующие льды' },
+                        { row: 3, col: 0, nextLocation: 'пихтовый коридор', name: 'Пихтовый коридор' },
+                        { row: 2, col: 9, nextLocation: 'ельник', name: 'Ельник' }
+                    ]
+                }
+            },
+            'пихтовый коридор': {
+                name: 'Пихтовый коридор',
+                background: 'https://pic.maxiol.com/images2/1773164536.784318299.89604.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773164536.784318299.89604.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 2, nextLocation: 'величественный бор', name: 'Величественный бор' },
+                        { row: 5, col: 9, nextLocation: 'узкая прогалина', name: 'Узкая прогалина' }
+                    ]
+                }
+            },
+            'узкая прогалина': {
+                name: 'Узкая прогалина',
+                background: 'https://pic.maxiol.com/images2/1773164981.784318299.89605.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773164981.784318299.89605.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 2, nextLocation: 'пихтовый коридор', name: 'Пихтовый коридор' },
+                        { row: 3, col: 9, nextLocation: 'высокие лиственницы', name: 'Высокие лиственницы' }
+                    ]
+                }
+            },
+            'высокие лиственницы': {
+                name: 'Высокие лиственницы',
+                background: 'https://pic.maxiol.com/images2/1773165162.784318299.89606.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773165162.784318299.89606.jpg',
+                characters: [
+                    { row: 4, col: 3, name: 'Барсук-Визгун', layers: ['https://pic.maxiol.com/thumbs2/1773165327.784318299.9012.png'] }
+                ],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'узкая прогалина', name: 'Узкая прогалина' },
+                        { row: 4, col: 0, nextLocation: 'редкий сосняк', name: 'Редкий сосняк' }
+                    ]
+                }
+            },
+            'редкий сосняк': {
+                name: 'Редкий сосняк',
+                background: 'https://pic.maxiol.com/images2/1773166268.784318299.89545.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773166268.784318299.89545.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 8, nextLocation: 'лесистая круча', name: 'Лесистая круча' },
+                        { row: 0, col: 9, nextLocation: 'высокие лиственницы', name: 'Высокие лиственницы' }
+                    ]
+                }
+            },
+            'лесистая круча': {
+                name: 'Лесистая круча',
+                background: 'https://pic.maxiol.com/images2/1773166268.784318299.89545.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773166268.784318299.89545.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 5, col: 9, nextLocation: 'редкий сосняк', name: 'Редкий сосняк' }
+                    ]
+                }
+            },
+            'дрейфующие льды': {
+                name: 'Дрейфующие льды',
+                background: 'https://pic.maxiol.com/images2/1773166645.784318299.89018.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773166645.784318299.89018.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 1, col: 0, nextLocation: 'начало ледяного моста', name: 'Начало ледяного моста' },
+                        { row: 2, col: 9, nextLocation: 'каменистая мель', name: 'Каменистая мель' },
+                        { row: 5, col: 6, nextLocation: 'величественный бор', name: 'Величественный бор' }
+                    ]
+                }
+            },
+            'начало ледяного моста': {
+                name: 'Начало ледяного моста',
+                background: 'https://pic.maxiol.com/images2/1773167748.784318299.89020.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773167748.784318299.89020.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 7, nextLocation: 'конец ледяного моста', name: 'Конец ледяного моста' },
+                        { row: 5, col: 8, nextLocation: 'дрейфующие льды', name: 'Дрейфующие льды' }
+                    ]
+                }
+            },
+            'конец ледяного моста': {
+                name: 'Конец ледяного моста',
+                background: 'https://pic.maxiol.com/images2/1773167856.784318299.89021.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773167856.784318299.89021.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 1, nextLocation: 'святилище гор', name: 'Святилище гор' },
+                        { row: 5, col: 3, nextLocation: 'начало ледяного моста', name: 'Начало ледяного моста' }
+                    ]
+                }
+            },
+            'святилище гор': {
+                name: 'Святилище гор',
+                background: 'https://pic.maxiol.com/images2/1773167894.784318299.89019.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773167894.784318299.89019.jpg',
+                characters: [
+                    { row: 4, col: 4, name: 'Рунический камень', layers: ['https://pic.maxiol.com/images2/1773167951.784318299.1148.png'] }
+                ],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 5, col: 1, nextLocation: 'конец ледяного моста', name: 'Конец ледяного моста' },
+                        { row: 5, col: 9, nextLocation: 'неумолимое течение', name: 'Неумолимое течение' }
+                    ]
+                }
+            },
+            'неумолимое течение': {
+                name: 'Неумолимое течение',
+                background: 'https://pic.maxiol.com/images2/1773168298.784318299.89022.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773168298.784318299.89022.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 1, col: 9, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 5, col: 7, nextLocation: 'тёмное низовье', name: 'Тёмное низовье' }
+                    ]
+                }
+            },
+            'заиндевевшие кусты голубики': {
+                name: 'Заиндевевшие кусты голубики',
+                background: 'https://pic.maxiol.com/images2/1773168483.784318299.89014.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773168483.784318299.89014.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 1, col: 0, nextLocation: 'мёрзлые земли', name: 'Мёрзлые земли' },
+                        { row: 3, col: 0, nextLocation: 'неумолимое течение', name: 'Неумолимое течение' },
+                        { row: 5, col: 1, nextLocation: 'тёмное низовье', name: 'Тёмное низовье' },
+                        { row: 5, col: 5, nextLocation: 'вороникин кряж', name: 'Вороникин кряж' },
+                        { row: 1, col: 7, nextLocation: 'лавинный конус', name: 'Лавинный конус' }
+                    ]
+                }
+            },
+            'тёмное низовье': {
+                name: 'Тёмное низовье',
+                background: 'https://pic.maxiol.com/images2/1773169808.784318299.89023.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773169808.784318299.89023.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'неумолимое течение', name: 'Неумолимое течение' },
+                        { row: 0, col: 9, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 1, col: 9, nextLocation: 'вороникин кряж', name: 'Вороникин кряж' },
+                        { row: 5, col: 7, nextLocation: 'каменистая мель', name: 'Каменистая мель' }
+                    ]
+                }
+            },
+            'каменистая мель': {
+                name: 'Каменистая мель',
+                background: 'https://pic.maxiol.com/images2/1773170157.784318299.89024.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773170157.784318299.89024.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'тёмное низовье', name: 'Тёмное низовье' },
+                        { row: 0, col: 9, nextLocation: 'вороникин кряж', name: 'Вороникин кряж' },
+                        { row: 2, col: 0, nextLocation: 'дрейфующие льды', name: 'Дрейфующие льды' },
+                        { row: 5, col: 7, nextLocation: 'ельник', name: 'Ельник' }
+                    ]
+                }
+            },
+            'вороникин кряж': {
+                name: 'Вороникин кряж',
+                background: 'https://pic.maxiol.com/images2/1773170191.784318299.89015.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773170191.784318299.89015.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 4, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 2, col: 0, nextLocation: 'тёмное низовье', name: 'Тёмное низовье' },
+                        { row: 5, col: 0, nextLocation: 'каменистая мель', name: 'Каменистая мель' }
+                    ]
+                }
+            },
+            'мёрзлые земли': {
+                name: 'Мёрзлые земли',
+                background: 'https://pic.maxiol.com/images2/1773170411.784318299.78010.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773170411.784318299.78010.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 2, col: 9, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 5, col: 4, nextLocation: 'скалистая гряда', name: 'Скалистая гряда' }
+                    ],
+                    specialTransitions: [
+                        { row: 1, col: 3, name: 'Горы' },
+                        { row: 3, col: 0, name: 'Горный перевал' },
+                        { row: 5, col: 8, name: 'Плато диких ветров' }
+                    ]
+                }
+            },
+            'скалистая гряда': {
+                name: 'Скалистая гряда',
+                background: 'https://pic.maxiol.com/images2/1773211145.2953829889.89500.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773211145.2953829889.89500.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 3, col: 0, nextLocation: 'мёрзлые земли', name: 'Мёрзлые земли' }
+                    ]
+                }
+            },
+            'лавинный конус': {
+                name: 'Лавинный конус',
+                background: 'https://pic.maxiol.com/images2/1773171095.784318299.89007.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773171095.784318299.89007.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 7, nextLocation: 'место-где-огни-касаются-земли', name: 'Место-где-огни-касаются-земли' },
+                        { row: 4, col: 2, nextLocation: 'заиндевевшие кусты голубики', name: 'Заиндевевшие кусты голубики' },
+                        { row: 5, col: 8, nextLocation: 'крутой подъём', name: 'Крутой подъём' }
+                    ]
+                }
+            },
+            'место-где-огни-касаются-земли': {
+                name: 'Место-где-огни-касаются-земли',
+                background: 'https://pic.maxiol.com/images2/1773171688.784318299.89010.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773171688.784318299.89010.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 5, col: 1, nextLocation: 'лавинный конус', name: 'Лавинный конус' },
+                        { row: 5, col: 8, nextLocation: 'хребет', name: 'Хребет' }
+                    ]
+                }
+            },
+            'крутой подъём': {
+                name: 'Крутой подъём',
+                background: 'https://pic.maxiol.com/images2/1773171219.784318299.89006.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773171219.784318299.89006.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 1, nextLocation: 'лавинный конус', name: 'Лавинный конус' },
+                        { row: 2, col: 9, nextLocation: 'переправа', name: 'Переправа' },
+                        { row: 4, col: 9, nextLocation: 'гиблый омут', name: 'Гиблый омут' },
+                        { row: 5, col: 4, nextLocation: 'перевал', name: 'Перевал' },
+                        { row: 0, col: 7, nextLocation: 'хребет', name: 'Хребет' }
+                    ]
+                }
+            },
+            'хребет': {
+                name: 'Хребет',
+                background: 'https://pic.maxiol.com/images2/1773171740.784318299.89008.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773171740.784318299.89008.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 2, nextLocation: 'место-где-огни-касаются-земли', name: 'Место-где-огни-касаются-земли' },
+                        { row: 3, col: 8, nextLocation: 'горбатая гора', name: 'Горбатая гора' },
+                        { row: 5, col: 2, nextLocation: 'крутой подъём', name: 'Крутой подъём' }
+                    ]
+                }
+            },
+            'горбатая гора': {
+                name: 'Горбатая гора',
+                background: 'https://pic.maxiol.com/images2/1773172212.784318299.89011.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773172212.784318299.89011.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 1, col: 8, nextLocation: 'ледопад', name: 'Ледопад' },
+                        { row: 3, col: 0, nextLocation: 'хребет', name: 'Хребет' },
+                        { row: 5, col: 7, nextLocation: 'морозный яр', name: 'Морозный яр' }
+                    ],
+                    specialTransitions: [
+                        { row: 4, col: 0, name: 'Пологий склон' }
+                    ]
+                }
+            },
+            'ледопад': {
+                name: 'Ледопад',
+                background: 'https://pic.maxiol.com/images2/1773172608.784318299.89012.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773172608.784318299.89012.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 4, col: 1, nextLocation: 'горбатая гора', name: 'Горбатая гора' },
+                        { row: 5, col: 4, nextLocation: 'морозный яр', name: 'Морозный яр' }
+                    ],
+                    specialTransitions: [
+                        { row: 1, col: 0, name: 'Горы' }
+                    ]
+                }
+            },
+            'морозный яр': {
+                name: 'Морозный яр',
+                background: 'https://pic.maxiol.com/images2/1773172968.784318299.89013.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773172968.784318299.89013.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 2, col: 0, nextLocation: 'переправа', name: 'Переправа' },
+                        { row: 5, col: 6, nextLocation: 'прорва', name: 'Прорва' }
+                    ],
+                    specialTransitions: [
+                        { row: 5, col: 0, name: 'Мель' }
+                    ]
+                }
+            },
+            'переправа': {
+                name: 'Переправа',
+                background: 'https://pic.maxiol.com/images2/1773173118.784318299.89009.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773173118.784318299.89009.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 2, col: 0, nextLocation: 'крутой подъём', name: 'Крутой подъём' },
+                        { row: 2, col: 9, nextLocation: 'морозный яр', name: 'Морозный яр' },
+                        { row: 5, col: 9, nextLocation: 'манящий обрыв', name: 'Манящий обрыв' }
+                    ]
+                }
+            },
+            'гиблый омут': {
+                name: 'Гиблый омут',
+                background: 'https://pic.maxiol.com/images2/1773173410.784318299.89026.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773173410.784318299.89026.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 1, col: 0, nextLocation: 'крутой подъём', name: 'Крутой подъём' },
+                        { row: 3, col: 9, nextLocation: 'прорва', name: 'Прорва' },
+                        { row: 5, col: 2, nextLocation: 'шепчущий о гибели бурный поток', name: 'Шепчущий о гибели бурный поток' }
+                    ]
+                }
+            },
+            'прорва': {
+                name: 'Прорва',
+                background: 'https://pic.maxiol.com/images2/1773209269.2953829889.89025.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773209269.2953829889.89025.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 9, nextLocation: 'морозный яр', name: 'Морозный яр' },
+                        { row: 4, col: 0, nextLocation: 'гиблый омут', name: 'Гиблый омут' },
+                        { row: 5, col: 6, nextLocation: 'неспокойные воды морливой излучины', name: 'Неспокойные воды морливой излучины' }
+                    ]
+                }
+            },
+            'неспокойные воды морливой излучины': {
+                name: 'Неспокойные воды морливой излучины',
+                background: 'https://pic.maxiol.com/images2/1773209645.2953829889.89578.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773209645.2953829889.89578.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 6, nextLocation: 'прорва', name: 'Прорва' },
+                        { row: 4, col: 0, nextLocation: 'шепчущий о гибели бурный поток', name: 'Шепчущий о гибели бурный поток' }
+                    ]
+                }
+            },
+            'шепчущий о гибели бурный поток': {
+                name: 'Шепчущий о гибели бурный поток',
+                background: 'https://pic.maxiol.com/images2/1773209645.2953829889.89578.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773209645.2953829889.89578.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 1, col: 9, nextLocation: 'неспокойные воды морливой излучины', name: 'Неспокойные воды морливой излучины' },
+                        { row: 2, col: 3, nextLocation: 'гиблый омут', name: 'Гиблый омут' }
+                    ],
+                    specialTransitions: [
+                        { row: 5, col: 9, name: 'Крохотный островок средь острых пик' }
+                    ]
+                }
+            },
+            'манящий обрыв': {
+                name: 'Манящий обрыв',
+                background: 'https://pic.maxiol.com/images2/1773210560.2953829889.89597.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773210560.2953829889.89597.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 6, nextLocation: 'переправа', name: 'Переправа' },
+                        { row: 4, col: 0, nextLocation: 'неприметная опора', name: 'Неприметная опора' },
+                        { row: 5, col: 7, nextLocation: 'неспокойные воды морливой излучины', name: 'Неспокойные воды морливой излучины' }
+                    ]
+                }
+            },
+            'неприметная опора': {
+                name: 'Неприметная опора',
+                background: 'https://pic.maxiol.com/images2/1773210599.2953829889.895451.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773210599.2953829889.895451.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 2, col: 9, nextLocation: 'манящий обрыв', name: 'Манящий обрыв' },
+                        { row: 4, col: 0, nextLocation: 'неприметная опора', name: 'Неприметная опора' },
+                        { row: 4, col: 3, nextLocation: 'рокочущий откос', name: 'Рокочущий откос' }
+                    ]
+                }
+            },
+            'рокочущий откос': {
+                name: 'Рокочущий откос',
+                background: 'https://pic.maxiol.com/images2/1773210599.2953829889.895451.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773210599.2953829889.895451.jpg',
+                characters: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 2, nextLocation: 'неприметная опора', name: 'Неприметная опора' },
+                        { row: 5, col: 6, nextLocation: 'шепчущий поток', name: 'Шепчущий поток' }
+                    ]
+                }
+            }
+        };
+    
+        const locationFeedback = {
+            'ельник': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'величественный бор': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'пихтовый коридор': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'узкая прогалина': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'высокие лиственницы': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'редкий сосняк': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'лесистая круча': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'дрейфующие льды': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'каменистая мель': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Но если росомаха около Перевала, то можно уйти и туда.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'каменистая мель': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Но если росомаха около Перевала, то можно уйти и туда.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'начало ледяного моста': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Скорее уходи отсюда.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Но если росомаха около Перевала, то можно уйти и туда.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'конец ледяного моста': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Скорее уходи отсюда.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Мёрзлые земли находятся совсем недалеко, нужно просто пересечь Неумолимое течение через Святилище гор, если этот путь безопасен.',
+                        'Если нет, то более хорошим вариантом будет бежать в сторону Перевала.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Это хороший вариант, но более путь более длинный, чем до Мёрзлых земель. Тем не менее, если он безопасен, лучше бежать на Перевал.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'святилище гор': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Мёрзлые земли находятся совсем недалеко, нужно просто пересечь Неумолимое течение через Святилище гор, если этот путь безопасен.',
+                        'Если нет, то более хорошим вариантом будет бежать в сторону Перевала.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Это хороший вариант, но более путь более длинный и опасный, чем до Мёрзлых земель. Тем не менее, если он безопасен, лучше бежать на Перевал.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'неумолимое течение': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Скорее уходи отсюда.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Мёрзлые земли находятся совсем недалеко, росомаха не сможет туда попасть.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: false,
+                    comments: [
+                        'Это хороший вариант, но более путь более длинный и опасный, чем до Мёрзлых земель. Тем не менее, если он безопасен, лучше бежать на Перевал.',
+                        'Но всё же наилучшим решением будет выбрать другой маршрут. Знаешь, какой?'
+                    ]
+                }
+            },
+            'тёмное низовье': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Скорее уходи отсюда.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Мёрзлые земли находятся совсем недалеко, росомаха не сможет туда попасть.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Это хороший вариант, хотя путь более длинный, чем до Мёрзлых земель. Тем не менее, если он безопасен, лучше бежать на Перевал.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'заиндевевшие кусты голубики': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Мёрзлые земли находятся тут, росомаха не сможет туда перейти.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: false,
+                    comments: [
+                        'Неплохо, но есть совсем короткий маршрут, где ты сразу можешь спастись. Знаешь, какой?'
+                    ]
+                }
+            },
+            'вороникин кряж': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Мёрзлые земли находятся совсем недалеко, росомаха не сможет туда попасть.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Это хороший вариант, хотя путь более длинный, чем до Мёрзлых земель. Тем не менее, если он безопасен, лучше бежать на Перевал.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'лавинный конус': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: true,
+                    comments: [
+                        'Да, можно! Помимо этого, есть варианты пойти на Перевал или Мёрзлые земли. В данном случае выбирай наиболее безопасный путь, исходя из ситуации.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: true,
+                    comments: [
+                        'Да, можно! Помимо этого, есть варианты пойти на Перевал или Пологий склон. В данном случае выбирай наиболее безопасный путь, исходя из ситуации.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да, можно! Помимо этого, есть варианты пойти на Пологий склон или Мёрзлые земли. В данном случае выбирай наиболее безопасный путь, исходя из ситуации.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'место-где-огни-касаются-земли': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: true,
+                    comments: [
+                        'Это самый идеальный и короткий маршрут! Помимо этого, есть варианты пойти на Перевал или Мёрзлые земли. В данном случае выбирай наиболее безопасный путь, исходя из ситуации.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: true,
+                    comments: [
+                        'Можно, но путь на Пологий склон будет короче. Помимо этого, есть варианты пойти на Перевал. В данном случае выбирай наиболее безопасный путь, исходя из ситуации.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Есть пути гораздо короче! Подумай хорошенько.'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Можно, но путь на Пологий склон будет наиболее коротким. Помимо Перевала, можно уйти в Мёрзлые земли. В данном случае выбирай наиболее безопасный путь, исходя из ситуации.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'хребет': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: true,
+                    comments: [
+                        'Это самый идеальный и короткий маршрут! Помимо этого, можно пойти на Перевал. В данном случае выбирай наиболее безопасный путь, исходя из ситуации.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход на Мёрзлые земли находится далековато. Есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Есть пути гораздо короче! Подумай хорошенько.'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Можно! Кроме того, ты можешь пойти на Пологий склон.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'горбатая гора': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! И кроме этого ты можешь уйти в горы через Ледопад.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход на Мёрзлые земли находится далековато. Есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: true,
+                    comments: [
+                        'Да, можно! А ещё лучшим вариантом будет забраться на Пологий склон.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход на Перевал, к сожалению, далеко. А что насчёт других маршрутов?'
+                    ]
+                }
+            },
+            'ледопад': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: true,
+                    comments: [
+                        'Можно! Но лучшим решением будет просто уйти в горы.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход на Мёрзлые земли находится далековато. Есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: true,
+                    comments: [
+                        'Ну конечно! Переход в горы совсем рядом. Также ты можешь пойти на Пологий склон.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход на Перевал, к сожалению, далеко. А что насчёт других маршрутов?'
+                    ]
+                }
+            },
+            'морозный яр': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'переправа': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'крутой подъём': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'прорва': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Нужно скорее покинуть эту сеть водных локаций.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Нет, это слишком далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится очень далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'К сожалению, горы слишком далеко. Ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Необходимо покинуть водные локации преимущественно через Морозный яр, в крайнем случае – через Крутой подъём.',
+                        'Не волнуйся, но помни, что здесь ты тратишь сонливость.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'гиблый омут': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Нужно скорее покинуть эту сеть водных локаций.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Нет, это слишком далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится очень далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'К сожалению, горы слишком далеко. Ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Необходимо покинуть водные локации преимущественно через Крутой подъём, в крайнем случае – через Морозный яр.',
+                        'Не волнуйся, но помни, что здесь ты тратишь сонливость.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'шепчущий о гибели бурный поток': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Нужно скорее покинуть эту сеть водных локаций.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Нет, это слишком далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится очень далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'К сожалению, горы слишком далеко. Ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Необходимо покинуть водные локации преимущественно через Крутой подъём, в крайнем случае – через Морозный яр.',
+                        'Не волнуйся, но помни, что здесь ты тратишь сонливость.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'неспокойные воды морливой излучины': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Нужно скорее покинуть эту сеть водных локаций.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Нет, это слишком далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится очень далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'К сожалению, горы слишком далеко. Ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Необходимо покинуть водные локации преимущественно через Морозный яр, в крайнем случае – через Крутой подъём.',
+                        'Не волнуйся, но помни, что здесь ты тратишь сонливость.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+        };
+
+
+        const locationBg = document.getElementById('locationBg');
+        const locationName = document.getElementById('locationName');
+        const fieldTable = document.getElementById('fieldTable');
+        const dialogPanel = document.getElementById('dialogPanel');
+        const speakerName = document.getElementById('speakerName');
+        const dialogText = document.getElementById('dialogText');
+        const dialogHint = document.getElementById('dialogHint');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const cancelMoveBtn = document.getElementById('cancelMoveBtn');
+        const fightMode = document.getElementById('fightMode');
+        const messageOverlay = document.getElementById('messageOverlay');
+        const messageText = document.getElementById('messageText');
+        const tryAgainBtn = document.getElementById('tryAgainBtn');
+        const choicePanel = document.getElementById('choicePanel');
+        const choiceButtons = document.getElementById('choiceButtons');
+        const choiceFeedback = document.getElementById('choiceFeedback');
+        const safeMessage = document.getElementById('safeMessage');
+        const deathOverlay = document.getElementById('deathOverlay');
+    
+        let currentLocation = 'перевал';
+        let playerRow = 0;
+        let playerCol = 0;
+        let wolverineActive = false;
+        let wolverineRow = 0;
+        let wolverineCol = 0;
+        let playerTimer = null;
+        let wolverineTimer = null;
+        let playerTimeLeft = 0;
+        let wolverineTimeLeft = 0;
+        let isMoving = false;
+        let wolverineMoving = false;
+        let isPrinting = false;
+        let printTimer = null;
+        let dialogActive = false;
+        let gameActive = true;
+        let gamePaused = false;
+        let currentText = '';
+        let currentDialogIsItalic = false;
+        let wolverineInterval = null;
+        let dialogJustFinished = false;
+        let pendingMove = null;
+        let wolverinePendingMove = null;
+        let cancelAvailable = true;
+    
+        const escapeLocations = ['перевал', 'мёрзлые земли', 'скалистая гряда', 'святилище гор'];
+        const mountainLocations = ['горбатая гора', 'ледопад', 'хребет', 'крутой подъём', 'место-где-огни-касаются-земли', 'лавинный конус'];
+        
+        function startGame() {
+            currentLocation = 'перевал';
+            playerRow = 0;
+            playerCol = 0;
+            wolverineActive = false;
+            wolverineLocation = null;
+            wolverineTargetTransition = null;
+            isMoving = false;
+            wolverineMoving = false;
+            gameActive = true;
+            gamePaused = false;
+            dialogJustFinished = false;
+            meetingDialogActive = false;
+            initialDialogActive = true;
+            dialogCooldown = false;
+            meetingDialogShown = false;
+            cancelAvailable = true;
+            playerMoveComplete = false;
+            wolverineMoveComplete = false;
+            meetingDialogStage = 0;
+            escapeAttempted = false;
+            fightMode.style.display = 'none';
+            pendingMove = null;
+            wolverinePendingMove = null;
+            document.getElementById('actionBar').style.display = 'none';
+            choicePanel.classList.remove('visible');
+            safeMessage.classList.remove('visible');
+            deathOverlay.classList.remove('visible');
+            
+            if (playerTimer) {
+                clearInterval(playerTimer);
+                playerTimer = null;
+            }
+            
+            if (wolverineTimer) {
+                clearInterval(wolverineTimer);
+                wolverineTimer = null;
+            }
+            
+            if (wolverineInterval) {
+                clearInterval(wolverineInterval);
+                wolverineInterval = null;
+            }
+            
+            if (arrowAnimationFrame) {
+                cancelAnimationFrame(arrowAnimationFrame);
+                arrowAnimationFrame = null;
+            }
+            
+            locationBg.style.backgroundImage = `url('${locations['перевал'].background}')`;
+            locationName.textContent = locations['перевал'].name;
+            renderGrid();
+            startInitialDialog();
+            updateCancelButton();
+        }
+    
+        function startInitialDialog() {
+            dialogPanel.classList.add('active');
+            speakerName.textContent = 'Вы';
+            printDialog('Мне нужно выйти на внелагерную территорию...', false);
+        }
+    
+        function printDialog(text, isItalic, callback) {
+            if (printTimer) clearTimeout(printTimer);
+            
+            let index = 0;
+            dialogText.innerHTML = '';
+            isPrinting = true;
+            dialogActive = true;
+            currentText = text;
+            currentDialogIsItalic = isItalic;
+            
+            function type() {
+                if (index < text.length) {
+                    if (isItalic) {
+                        dialogText.innerHTML = '<i>' + text.substring(0, index + 1) + '</i>';
+                    } else {
+                        dialogText.innerHTML = text.substring(0, index + 1);
+                    }
+                    index++;
+                    
+                    if (typingSoundEnabled && typingSound.volume > 0) {
+                        typingSound.currentTime = 0;
+                        typingSound.play().catch(e => {});
+                    }
+                    
+                    printTimer = setTimeout(type, 30);
+                } else {
+                    isPrinting = false;
+                    printTimer = null;
+                    if (callback) callback();
+                }
+            }
+            
+            type();
+        }
+    
+        function findFirstFreeCell(location, startRow, startCol) {
+            for (let row = 0; row < location.grid.rows; row++) {
+                for (let col = 0; col < location.grid.cols; col++) {
+                    if (wolverineActive && wolverineLocation === currentLocation && wolverineRow === row && wolverineCol === col) {
+                        continue;
+                    }
+                    
+                    const hasTransition = location.grid.transitions?.some(t => t.row === row && t.col === col);
+                    const hasSpecial = location.grid.specialTransitions?.some(t => t.row === row && t.col === col);
+                    const hasCharacter = location.characters?.some(c => c.row === row && c.col === col);
+                    
+                    if (hasTransition || hasSpecial || hasCharacter) {
+                        continue;
+                    }
+                    
+                    return { row, col };
+                }
+            }
+            return { row: 0, col: 0 };
+        }
+    
+        function spawnWolverine() {
+            const outdoorLocations = [
+                'крутой подъём', 'лавинный конус'
+            ];
+            
+            const forbiddenLocations = ['перевал', 'мёрзлые земли', 'скалистая гряда', 'святилище гор'];
+            
+            const availableLocations = outdoorLocations.filter(loc => 
+                loc !== currentLocation && !forbiddenLocations.includes(loc)
+            );
+            
+            if (availableLocations.length === 0) return;
+            
+            let wolverineSpawnLocation;
+            let location;
+            let foundValidCell = false;
+            let attempts = 0;
+            const maxAttempts = 50;
+            
+            while (!foundValidCell && attempts < maxAttempts) {
+                wolverineSpawnLocation = availableLocations[Math.floor(Math.random() * availableLocations.length)];
+                location = locations[wolverineSpawnLocation];
+                
+                const randomCol = Math.floor(Math.random() * location.grid.cols);
+                const randomRow = Math.floor(Math.random() * location.grid.rows);
+                
+                const hasTransition = location.grid.transitions?.some(t => t.row === randomRow && t.col === randomCol);
+                const hasSpecial = location.grid.specialTransitions?.some(t => t.row === randomRow && t.col === randomCol);
+                const hasCharacter = location.characters?.some(c => c.row === randomRow && c.col === randomCol);
+                
+                if (!hasTransition && !hasSpecial && !hasCharacter) {
+                    wolverineRow = randomRow;
+                    wolverineCol = randomCol;
+                    foundValidCell = true;
+                }
+                attempts++;
+            }
+            
+            if (!foundValidCell) {
+                for (let row = 0; row < location.grid.rows; row++) {
+                    for (let col = 0; col < location.grid.cols; col++) {
+                        const hasTransition = location.grid.transitions?.some(t => t.row === row && t.col === col);
+                        const hasSpecial = location.grid.specialTransitions?.some(t => t.row === row && t.col === col);
+                        const hasCharacter = location.characters?.some(c => c.row === row && c.col === col);
+                        
+                        if (!hasTransition && !hasSpecial && !hasCharacter) {
+                            wolverineRow = row;
+                            wolverineCol = col;
+                            foundValidCell = true;
+                            break;
+                        }
+                    }
+                    if (foundValidCell) break;
+                }
+            }
+            
+            wolverineLocation = wolverineSpawnLocation;
+            wolverineActive = true;
+            wolverineMoving = false;
+            wolverineMoveComplete = false;
+            wolverineTimeLeft = 0;
+            
+            startWolverineBehavior();
+        }
+    
+        function startWolverineBehavior() {
+            if (wolverineInterval) {
+                clearInterval(wolverineInterval);
+            }
+            
+            wolverineInterval = setInterval(() => {
+                if (!gameActive || gamePaused || meetingDialogActive || dialogCooldown) return;
+                moveWolverine();
+            }, 300);
+        }
+    
+        function moveWolverine() {
+            if (!wolverineActive || !wolverineLocation || wolverineMoving || dialogCooldown || meetingDialogActive || dialogActive) {
+                return;
+            }
+            
+            const location = locations[wolverineLocation];
+            if (!location) return;
+            
+            updateArrowTarget();
+            
+            if (wolverineLocation === currentLocation) {
+                const distance = Math.abs(wolverineRow - playerRow) + Math.abs(wolverineCol - playerCol);
+                
+                if (distance <= 1) {
+                    checkWolverineAttack();
+                    return;
+                }
+                
+                const leftCell = { row: playerRow, col: playerCol - 1 };
+                const rightCell = { row: playerRow, col: playerCol + 1 };
+                
+                const leftIsTransition = location.grid.transitions?.some(t => t.row === leftCell.row && t.col === leftCell.col);
+                const leftIsSpecial = location.grid.specialTransitions?.some(t => t.row === leftCell.row && t.col === leftCell.col);
+                const leftIsCharacter = location.characters?.some(c => c.row === leftCell.row && c.col === leftCell.col);
+                
+                const rightIsTransition = location.grid.transitions?.some(t => t.row === rightCell.row && t.col === rightCell.col);
+                const rightIsSpecial = location.grid.specialTransitions?.some(t => t.row === rightCell.row && t.col === rightCell.col);
+                const rightIsCharacter = location.characters?.some(c => c.row === rightCell.row && c.col === rightCell.col);
+                
+                const canMoveLeft = leftCell.col >= 0 && !leftIsTransition && !leftIsSpecial && !leftIsCharacter &&
+                                   !(wolverineLocation === currentLocation && leftCell.row === playerRow && leftCell.col === playerCol);
+                
+                const canMoveRight = rightCell.col < location.grid.cols && !rightIsTransition && !rightIsSpecial && !rightIsCharacter &&
+                                    !(wolverineLocation === currentLocation && rightCell.row === playerRow && rightCell.col === playerCol);
+                
+                if (canMoveLeft && wolverineRow === playerRow && Math.abs(wolverineCol - playerCol) === 2) {
+                    wolverineCol = playerCol - 1;
+                    updateArrowTarget();
+                    renderGrid();
+                    checkWolverineAttack();
+                    return;
+                }
+                
+                if (canMoveRight && wolverineRow === playerRow && Math.abs(wolverineCol - playerCol) === 2) {
+                    wolverineCol = playerCol + 1;
+                    updateArrowTarget();
+                    renderGrid();
+                    checkWolverineAttack();
+                    return;
+                }
+                
+                const path = findPathToPlayerWithPriority(wolverineRow, wolverineCol, playerRow, playerCol, location);
+                
+                if (path && path.length > 0) {
+                    const nextStep = path[0];
+                    const isNextStepTransition = location.grid.transitions?.some(t => t.row === nextStep.row && t.col === nextStep.col);
+                    const isNextStepSpecial = location.grid.specialTransitions?.some(t => t.row === nextStep.row && t.col === nextStep.col);
+                    const isNextStepCharacter = location.characters?.some(c => c.row === nextStep.row && c.col === nextStep.col);
+                    
+                    if (!isNextStepTransition && !isNextStepSpecial && !isNextStepCharacter) {
+                        wolverineRow = nextStep.row;
+                        wolverineCol = nextStep.col;
+                        updateArrowTarget();
+                        renderGrid();
+                        checkWolverineAttack();
+                    }
+                }
+                return;
+            }
+            
+            moveTowardsTransition(location);
+        }
+    
+        function findPathToPlayerWithPriority(startRow, startCol, targetRow, targetCol, location) {
+            const priorityPositions = [
+                { row: targetRow, col: targetCol - 1 },
+                { row: targetRow, col: targetCol + 1 },
+                { row: targetRow - 1, col: targetCol },
+                { row: targetRow + 1, col: targetCol }
+            ].filter(pos => 
+                pos.row >= 0 && pos.row < location.grid.rows &&
+                pos.col >= 0 && pos.col < location.grid.cols &&
+                !location.grid.transitions?.some(t => t.row === pos.row && t.col === pos.col) &&
+                !location.grid.specialTransitions?.some(t => t.row === pos.row && t.col === pos.col) &&
+                !location.characters?.some(c => c.row === pos.row && c.col === pos.col)
+            );
+            
+            for (let priority of priorityPositions) {
+                if (Math.abs(startRow - priority.row) <= 1 && Math.abs(startCol - priority.col) <= 1) {
+                    const directPath = findDirectPath(startRow, startCol, priority.row, priority.col, location);
+                    if (directPath) {
+                        return [{ row: priority.row, col: priority.col }];
+                    }
+                }
+            }
+            
+            const queue = [{ row: startRow, col: startCol, path: [] }];
+            const visited = new Set();
+            visited.add(`${startRow},${startCol}`);
+            
+            const directions = [
+                { dr: -1, dc: 0 }, { dr: 1, dc: 0 },
+                { dr: 0, dc: -1 }, { dr: 0, dc: 1 },
+                { dr: -1, dc: -1 }, { dr: -1, dc: 1 },
+                { dr: 1, dc: -1 }, { dr: 1, dc: 1 }
+            ];
+            
+            while (queue.length > 0) {
+                const current = queue.shift();
+                
+                for (let dir of directions) {
+                    const newRow = current.row + dir.dr;
+                    const newCol = current.col + dir.dc;
+                    
+                    if (newRow >= 0 && newRow < location.grid.rows && 
+                        newCol >= 0 && newCol < location.grid.cols &&
+                        !visited.has(`${newRow},${newCol}`)) {
+                        
+                        if (priorityPositions.some(p => p.row === newRow && p.col === newCol)) {
+                            const newPath = [...current.path, { row: newRow, col: newCol }];
+                            return newPath;
+                        }
+                        
+                        const isTransition = location.grid.transitions?.some(t => t.row === newRow && t.col === newCol);
+                        const isSpecial = location.grid.specialTransitions?.some(t => t.row === newRow && t.col === newCol);
+                        const isCharacter = location.characters?.some(c => c.row === newRow && c.col === newCol);
+                        const isPlayer = (newRow === targetRow && newCol === targetCol);
+                        
+                        if ((isTransition || isSpecial || isCharacter) && !(newRow === targetRow && newCol === targetCol)) {
+                            continue;
+                        }
+                        
+                        if (!isTransition && !isSpecial && !isCharacter && !isPlayer) {
+                            visited.add(`${newRow},${newCol}`);
+                            queue.push({
+                                row: newRow,
+                                col: newCol,
+                                path: [...current.path, { row: newRow, col: newCol }]
+                            });
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        }
+    
+        function findDirectPath(fromRow, fromCol, toRow, toCol, location) {
+            const rowDiff = toRow - fromRow;
+            const colDiff = toCol - fromCol;
+            
+            if (Math.abs(rowDiff) > 1 || Math.abs(colDiff) > 1) return null;
+            
+            if (rowDiff !== 0 && colDiff !== 0) {
+                const cell1 = { row: fromRow + rowDiff, col: fromCol };
+                const cell2 = { row: fromRow, col: fromCol + colDiff };
+                
+                if (location.grid.transitions?.some(t => t.row === cell1.row && t.col === cell1.col) ||
+                    location.grid.specialTransitions?.some(t => t.row === cell1.row && t.col === cell1.col) ||
+                    location.characters?.some(c => c.row === cell1.row && c.col === cell1.col) ||
+                    location.grid.transitions?.some(t => t.row === cell2.row && t.col === cell2.col) ||
+                    location.grid.specialTransitions?.some(t => t.row === cell2.row && t.col === cell2.col) ||
+                    location.characters?.some(c => c.row === cell2.row && c.col === cell2.col)) {
+                    return null;
+                }
+            }
+            
+            return true;
+        }
+    
+        function moveTowardsTransition(location) {
+            const transitions = location.grid.transitions || [];
+            if (transitions.length === 0) return;
+            
+            const forbiddenLocations = ['перевал', 'мёрзлые земли', 'скалистая гряда'];
+            
+            if (!wolverineTargetTransition || wolverineTargetTransition.location !== wolverineLocation) {
+                const validTransitions = transitions.filter(t => !forbiddenLocations.includes(t.nextLocation));
+                
+                if (validTransitions.length === 0) {
+                    wolverineTargetTransition = null;
+                    return;
+                }
+                
+                const randomIndex = Math.floor(Math.random() * validTransitions.length);
+                wolverineTargetTransition = {
+                    ...validTransitions[randomIndex],
+                    location: wolverineLocation
+                };
+            }
+            
+            const targetRow = wolverineTargetTransition.row;
+            const targetCol = wolverineTargetTransition.col;
+            
+            if (wolverineRow === targetRow && wolverineCol === targetCol) {
+                instantWolverineTransition(wolverineTargetTransition.nextLocation);
+                wolverineTargetTransition = null;
+                return;
+            }
+            
+            const path = findPathTo(
+                wolverineRow, wolverineCol,
+                targetRow, targetCol,
+                location, false,
+                true
+            );
+            
+            if (path && path.length > 0) {
+                const nextStep = path[0];
+                
+                const isNextStepOtherTransition = location.grid.transitions?.some(t => 
+                    t.row === nextStep.row && t.col === nextStep.col && 
+                    !(t.row === targetRow && t.col === targetCol)
+                );
+                
+                const isNextStepSpecial = location.grid.specialTransitions?.some(t => 
+                    t.row === nextStep.row && t.col === nextStep.col
+                );
+                
+                const isNextStepCharacter = location.characters?.some(c => 
+                    c.row === nextStep.row && c.col === nextStep.col
+                );
+                
+                if (!isNextStepOtherTransition && !isNextStepSpecial && !isNextStepCharacter) {
+                    wolverineRow = nextStep.row;
+                    wolverineCol = nextStep.col;
+                    updateArrowTarget();
+                    renderGrid();
+                } else {
+                    wolverineTargetTransition = null;
+                }
+            } else {
+                wolverineTargetTransition = null;
+            }
+        }
+
+        function findPathTo(startRow, startCol, targetRow, targetCol, location, avoidPlayerCell, allowTargetTransition = false) {
+            const queue = [{ row: startRow, col: startCol, path: [] }];
+            const visited = new Set();
+            visited.add(`${startRow},${startCol}`);
+            
+            const directions = [
+                { dr: -1, dc: 0 }, { dr: 1, dc: 0 },
+                { dr: 0, dc: -1 }, { dr: 0, dc: 1 },
+                { dr: -1, dc: -1 }, { dr: -1, dc: 1 },
+                { dr: 1, dc: -1 }, { dr: 1, dc: 1 }
+            ];
+            
+            while (queue.length > 0) {
+                const current = queue.shift();
+                
+                for (let dir of directions) {
+                    const newRow = current.row + dir.dr;
+                    const newCol = current.col + dir.dc;
+                    
+                    if (newRow >= 0 && newRow < location.grid.rows && 
+                        newCol >= 0 && newCol < location.grid.cols &&
+                        !visited.has(`${newRow},${newCol}`)) {
+                        
+                        let canStep = true;
+                        
+                        if (avoidPlayerCell && wolverineLocation === currentLocation && 
+                            newRow === playerRow && newCol === playerCol && 
+                            !(newRow === targetRow && newCol === targetCol)) {
+                            canStep = false;
+                        }
+                        
+                        const isTransition = location.grid.transitions?.some(t => t.row === newRow && t.col === newCol);
+                        const isSpecial = location.grid.specialTransitions?.some(t => t.row === newRow && t.col === newCol);
+                        const isCharacter = location.characters?.some(c => c.row === newRow && c.col === newCol);
+                        
+                        if (newRow === targetRow && newCol === targetCol) {
+                        } else {
+                            if (isTransition || isSpecial || isCharacter) {
+                                canStep = false;
+                            }
+                        }
+                        
+                        if (canStep) {
+                            const newPath = [...current.path, { row: newRow, col: newCol }];
+                            
+                            if (newRow === targetRow && newCol === targetCol) {
+                                return newPath;
+                            }
+                            
+                            visited.add(`${newRow},${newCol}`);
+                            queue.push({ row: newRow, col: newCol, path: newPath });
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        function instantWolverineTransition(nextLocation) {
+            if (!wolverineActive) return;
+            
+            const forbiddenLocations = ['перевал', 'мёрзлые земли', 'скалистая гряда', 'святилище гор'];
+            
+            if (forbiddenLocations.includes(nextLocation)) {
+                const location = locations[wolverineLocation];
+                const availableTransitions = location.grid.transitions.filter(t => !forbiddenLocations.includes(t.nextLocation));
+                
+                if (availableTransitions.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * availableTransitions.length);
+                    nextLocation = availableTransitions[randomIndex].nextLocation;
+                } else {
+                    return;
+                }
+            }
+            
+            wolverineLocation = nextLocation;
+            const newLocation = locations[wolverineLocation];
+            
+            if (wolverineLocation === currentLocation) {
+                const targetRow = 0;
+                let foundCell = false;
+                
+                for (let col = 0; col < newLocation.grid.cols; col++) {
+                    if (col === playerCol) continue;
+                    
+                    const hasTransition = newLocation.grid.transitions?.some(t => t.row === targetRow && t.col === col);
+                    const hasSpecial = newLocation.grid.specialTransitions?.some(t => t.row === targetRow && t.col === col);
+                    const hasCharacter = newLocation.characters?.some(c => c.row === targetRow && c.col === col);
+                    
+                    if (hasTransition || hasSpecial || hasCharacter) continue;
+                    
+                    wolverineRow = targetRow;
+                    wolverineCol = col;
+                    foundCell = true;
+                    break;
+                }
+                
+                if (!foundCell) {
+                    for (let row = 1; row < newLocation.grid.rows; row++) {
+                        for (let col = 0; col < newLocation.grid.cols; col++) {
+                            const hasTransition = newLocation.grid.transitions?.some(t => t.row === row && t.col === col);
+                            const hasSpecial = newLocation.grid.specialTransitions?.some(t => t.row === row && t.col === col);
+                            const hasCharacter = newLocation.characters?.some(c => c.row === row && c.col === col);
+                            
+                            if (hasTransition || hasSpecial || hasCharacter) continue;
+                            
+                            wolverineRow = row;
+                            wolverineCol = col;
+                            foundCell = true;
+                            break;
+                        }
+                        if (foundCell) break;
+                    }
+                }
+                
+                if (!foundCell) {
+                    wolverineRow = 0;
+                    wolverineCol = 0;
+                }
+                
+                if (!meetingDialogShown && !dialogCooldown && gameActive) {
+                    showMeetingDialog();
+                }
+            } else {
+                let foundCell = false;
+                for (let row = 0; row < newLocation.grid.rows; row++) {
+                    for (let col = 0; col < newLocation.grid.cols; col++) {
+                        const hasTransition = newLocation.grid.transitions?.some(t => t.row === row && t.col === col);
+                        const hasSpecial = newLocation.grid.specialTransitions?.some(t => t.row === row && t.col === col);
+                        const hasCharacter = newLocation.characters?.some(c => c.row === row && c.col === col);
+                        
+                        if (hasTransition || hasSpecial || hasCharacter) continue;
+                        
+                        wolverineRow = row;
+                        wolverineCol = col;
+                        foundCell = true;
+                        break;
+                    }
+                    if (foundCell) break;
+                }
+                
+                if (!foundCell) {
+                    wolverineRow = 0;
+                    wolverineCol = 0;
+                }
+            }
+            
+            updateArrowTarget();
+            wolverineTargetTransition = null;
+            renderGrid();
+            startWolverineMoveOnNewLocation();
+        }
+
+        function startWolverineMoveOnNewLocation() {
+            if (!wolverineActive || wolverineMoving || !gameActive) return;
+            
+            wolverineMoving = true;
+            
+            const huntingNetwork = ['пихтовый коридор', 'узкая прогалина', 'высокие лиственницы', 'редкий сосняк', 'лесистая круча'];
+            
+            const isInHuntingNetwork = huntingNetwork.includes(wolverineLocation);
+            const isFromPikhtovyToBor = wolverineTargetTransition && 
+                                        wolverineTargetTransition.location === 'пихтовый коридор' && 
+                                        wolverineLocation === 'величественный бор';
+            
+            if (isInHuntingNetwork || isFromPikhtovyToBor) {
+                wolverineTimeLeft = 5;
+            } else {
+                wolverineTimeLeft = 40;
+            }
+            
+            wolverineMoveComplete = false;
+            
+            if (wolverineTimer) clearInterval(wolverineTimer);
+            wolverineTimer = setInterval(() => {
+                if (!gameActive || meetingDialogActive) return;
+                
+                wolverineTimeLeft--;
+                
+                if (wolverineTimeLeft <= 0) {
+                    completeWolverineMoveOnLocation();
+                }
+            }, 1000);
+        }
+
+        function completeWolverineMoveOnLocation() {
+            clearInterval(wolverineTimer);
+            wolverineTimer = null;
+            wolverineMoving = false;
+            wolverineMoveComplete = true;
+            
+            wolverineTargetTransition = null;
+            
+            renderGrid();
+            checkWolverineAttack();
+        }
+    
+        function startPlayerMove(nextLocation, targetRow, targetCol) {
+            if (isMoving || !gameActive || dialogActive || dialogJustFinished || meetingDialogActive) return;
+            
+            if (escapeAttempted && escapeLocations.includes(nextLocation)) {
+                safeMessage.classList.add('visible');
+                setTimeout(() => {
+                    safeMessage.classList.remove('visible');
+                }, 3000);
+                return;
+            }
+            
+            const previousLocation = currentLocation;
+            const previousRow = playerRow;
+            const previousCol = playerCol;
+            
+            if (nextLocation === 'перевал') {
+                if (meetingDialogShown) {
+                    safeMessage.classList.add('visible');
+                    setTimeout(() => {
+                        safeMessage.classList.remove('visible');
+                    }, 3000);
+                    return;
+                }
+                playerEscaped();
+                return;
+            }
+            
+            currentLocation = nextLocation;
+            const location = locations[currentLocation];
+            
+            const freeCell = findFirstFreeCell(location, 0, 0);
+            playerRow = freeCell.row;
+            playerCol = freeCell.col;
+            
+            locationBg.style.backgroundImage = `url('${location.background}')`;
+            locationName.textContent = location.name;
+            renderGrid();
+            
+            const startTime = Date.now();
+            
+            pendingMove = { 
+                previousLocation,
+                previousRow,
+                previousCol,
+                startTime: startTime
+            };
+            
+            isMoving = true;
+            cancelAvailable = true;
+            
+            const huntingNetwork = ['пихтовый коридор', 'узкая прогалина', 'высокие лиственницы', 'редкий сосняк', 'лесистая круча'];
+            
+            const isShortTransition = 
+                (huntingNetwork.includes(previousLocation) && huntingNetwork.includes(nextLocation)) ||
+                (previousLocation === 'пихтовый коридор' && nextLocation === 'величественный бор') ||
+                (previousLocation === 'величественный бор' && nextLocation === 'пихтовый коридор');
+            
+            if (isShortTransition) {
+                playerTimeLeft = 5;
+            } else {
+                playerTimeLeft = 45;
+            }
+            
+            updatePlayerTimer();
+            updateCancelButton();
+            
+            if (playerTimer) clearInterval(playerTimer);
+            playerTimer = setInterval(() => {
+                if (!gameActive || meetingDialogActive) return;
+                playerTimeLeft--;
+                updatePlayerTimer();
+                if (playerTimeLeft <= 0) {
+                    completePlayerMove();
+                }
+            }, 1000);
+            
+            if (wolverineActive && wolverineLocation === currentLocation && !meetingDialogShown && !dialogCooldown && gameActive) {
+                showMeetingDialog();
+            }
+            
+            if (!wolverineActive) {
+                setTimeout(() => {
+                    if (!wolverineActive && gameActive) {
+                        spawnWolverine();
+                    }
+                }, 1000);
+            }
+        }
+
+        function updatePlayerTimer() {
+            timerDisplay.textContent = playerTimeLeft + ' с.';
+        }
+    
+        function completePlayerMove() {
+            clearInterval(playerTimer);
+            playerTimer = null;
+            isMoving = false;
+            cancelAvailable = false;
+            pendingMove = null;
+            timerDisplay.textContent = '0 с.';
+            updateCancelButton();
+            
+            playerMoveComplete = true;
+            
+            checkWolverineAttack();
+        }
+    
+        function cancelPlayerMove() {
+            if (meetingDialogShown && pendingMove && pendingMove.previousLocation === 'перевал') {
+                playerEscaped();
+                return;
+            }
+
+            if (isMoving && gameActive && !meetingDialogActive && cancelAvailable) {
+                clearInterval(playerTimer);
+                playerTimer = null;
+                
+                if (pendingMove) {
+                    const timeElapsed = Math.floor((Date.now() - pendingMove.startTime) / 1000);
+                    
+                    let cancelTime;
+                    
+                    if (timeElapsed <= 5) {
+                        cancelTime = 3;
+                    } else {
+                        cancelTime = 45 - playerTimeLeft;
+                    }
+                    
+                    currentLocation = pendingMove.previousLocation;
+                    playerRow = pendingMove.previousRow;
+                    playerCol = pendingMove.previousCol;
+                    
+                    const location = locations[currentLocation];
+                    locationBg.style.backgroundImage = `url('${location.background}')`;
+                    locationName.textContent = location.name;
+                    renderGrid();
+                    
+                    playerTimeLeft = cancelTime;
+                    updatePlayerTimer();
+                    
+                    pendingMove = { 
+                        previousLocation: currentLocation,
+                        previousRow: playerRow,
+                        previousCol: playerCol,
+                        startTime: Date.now()
+                    };
+                    
+                    cancelAvailable = false;
+                    updateCancelButton();
+                    
+                    if (playerTimer) clearInterval(playerTimer);
+                    playerTimer = setInterval(() => {
+                        if (!gameActive || meetingDialogActive) return;
+                        playerTimeLeft--;
+                        updatePlayerTimer();
+                        if (playerTimeLeft <= 0) {
+                            completePlayerMove();
+                        }
+                    }, 1000);
+                }
+            }
+        }
+    
+        function updateCancelButton() {
+            const actionBar = document.getElementById('actionBar');
+            if (cancelAvailable && isMoving) {
+                actionBar.style.display = 'flex';
+                cancelMoveBtn.style.display = 'block';
+            } else {
+                actionBar.style.display = 'none';
+                cancelMoveBtn.style.display = 'none';
+            }
+        }
+    
+        function checkWolverineAttack() {
+            if (!wolverineActive || wolverineLocation !== currentLocation || !gameActive) return;
+            
+            const distance = Math.abs(wolverineRow - playerRow) + Math.abs(wolverineCol - playerCol);
+            
+            if (distance <= 1 && gameActive && !isMoving && !meetingDialogActive && !dialogActive) {
+                if (!wolverineMoving || wolverineMoveComplete) {
+                    attackPlayer();
+                }
+            }
+        }
+    
+        function attackPlayer() {
+            gameActive = false;
+            wolverineActive = false;
+            
+            if (wolverineInterval) {
+                clearInterval(wolverineInterval);
+                wolverineInterval = null;
+            }
+            if (playerTimer) {
+                clearInterval(playerTimer);
+                playerTimer = null;
+            }
+            if (wolverineTimer) {
+                clearInterval(wolverineTimer);
+                wolverineTimer = null;
+            }
+            if (arrowAnimationFrame) {
+                cancelAnimationFrame(arrowAnimationFrame);
+                arrowAnimationFrame = null;
+            }
+            
+            deathOverlay.classList.add('visible');
+            
+            messageText.textContent = 'Тебя убила росомаха!';
+            messageOverlay.classList.add('visible');
+            cancelAvailable = false;
+            updateCancelButton();
+        }
+    
+        function playerEscaped() {
+            gameActive = false;
+            wolverineActive = false;
+            
+            if (wolverineInterval) {
+                clearInterval(wolverineInterval);
+                wolverineInterval = null;
+            }
+            if (playerTimer) {
+                clearInterval(playerTimer);
+                playerTimer = null;
+            }
+            if (wolverineTimer) {
+                clearInterval(wolverineTimer);
+                wolverineTimer = null;
+            }
+            if (arrowAnimationFrame) {
+                cancelAnimationFrame(arrowAnimationFrame);
+                arrowAnimationFrame = null;
+            }
+            
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+            
+            messageText.textContent = 'Вы спаслись!';
+            messageOverlay.classList.add('visible');
+            cancelAvailable = false;
+            updateCancelButton();
+        }
+    
+        function showMeetingDialog() {
+            if (meetingDialogActive || !gameActive || dialogCooldown || meetingDialogShown) return;
+
+            if (soundEnabled) {
+                backgroundMusic.pause();
+                dangerMusic.currentTime = 0;
+                dangerMusic.play();
+            }
+            
+            meetingDialogShown = true;
+            wasPlayerMoving = isMoving;
+            wasWolverineMoving = wolverineMoving;
+            
+            wasWolverineActive = wolverineActive;
+            wasWolverineLocation = wolverineLocation;
+            wasWolverineRow = wolverineRow;
+            wasWolverineCol = wolverineCol;
+            
+            meetingDialogActive = true;
+            dialogCooldown = true;
+            
+            cancelAvailable = false;
+            updateCancelButton();
+            
+            if (playerTimer) {
+                playerSavedTime = playerTimeLeft;
+                clearInterval(playerTimer);
+                playerTimer = null;
+            }
+            if (wolverineTimer) {
+                wolverineSavedTime = wolverineTimeLeft;
+                clearInterval(wolverineTimer);
+                wolverineTimer = null;
+            }
+            
+            if (wolverineInterval) {
+                clearInterval(wolverineInterval);
+                wolverineInterval = null;
+            }
+            
+            dialogPanel.classList.add('active');
+            speakerName.textContent = 'Вы';
+            
+            if (printTimer) clearTimeout(printTimer);
+            isPrinting = false;
+            
+            meetingDialogTexts = [
+                'Ты неожиданно встречаешь росомаху! Не паникуй и помни, что знание алгоритма действий спасёт тебе жизнь.',
+                'Первым делом о росомахе и её местоположении нужно сообщить соклановцам и Правому Альянсу: в общей и новостной беседах с тагом @all, а если ты в них не состоишь, то любому коту из Правого Альянса в сети.',
+                'Посмотри на локацию и подумай, куда лучше будет уйти, чтобы спастись?'
+            ];
+            meetingDialogIndex = 0;
+            
+            printDialog(meetingDialogTexts[0], false);
+        }
+
+        function showChoicePanel() {
+            choiceButtons.innerHTML = '';
+            choicePanel.classList.add('visible');
+            waitingForChoice = true;
+            
+            const choices = [
+                'В глубокие воды',
+                'Пойду на лазательные локации (Пологий склон)',
+                'В Мёрзлые земли',
+                'В горы через Ледопад',
+                'На Перевал'
+            ];
+            
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = choice;
+                btn.addEventListener('click', () => {
+                    playClickSound();
+                    currentChoice = choice;
+                    
+                    const locationData = locationFeedback[currentLocation];
+                    if (!locationData) {
+                        return;
+                    }
+                    
+                    currentChoiceData = locationData[choice];
+                    if (!currentChoiceData) {
+                        return;
+                    }
+                    
+                    choicePanel.classList.remove('visible');
+                    waitingForChoice = false;
+                    
+                    dialogPanel.classList.add('active');
+                    speakerName.textContent = 'Вы';
+                    
+                    choiceComments = currentChoiceData.comments;
+                    choiceCommentIndex = 0;
+                    
+                    printDialog(choiceComments[0], false);
+                    
+                    if (currentChoiceData.isCorrect) {
+                        escapeAttempted = true;
+                    }
+                });
+                choiceButtons.appendChild(btn);
+            });
+        }
+
+        function resumeWolverineMovement() {
+            if (!wolverineActive || !gameActive) return;
+            
+            wolverineMoving = false;
+            wolverineMoveComplete = false;
+            
+            if (wolverineInterval) {
+                clearInterval(wolverineInterval);
+                wolverineInterval = null;
+            }
+            
+            if (wolverineTimer) {
+                clearInterval(wolverineTimer);
+                wolverineTimer = null;
+            }
+            
+            wolverineTargetTransition = null;
+            
+            updateArrowTarget();
+            
+            startWolverineBehavior();
+            
+            renderGrid();
+        }
+
+        function getArrowRotation(fromRow, fromCol, toRow, toCol) {
+            if (toRow === undefined || toCol === undefined) return currentArrowAngle;
+            
+            const rowDiff = toRow - fromRow;
+            const colDiff = toCol - fromCol;
+            
+            let angle = 0;
+            
+            if (rowDiff < 0 && colDiff === 0) angle = 90;
+            else if (rowDiff < 0 && colDiff > 0) angle = 180;
+            else if (rowDiff === 0 && colDiff > 0) angle = 90;
+            else if (rowDiff > 0 && colDiff > 0) angle = 135;
+            else if (rowDiff > 0 && colDiff === 0) angle = 180;
+            else if (rowDiff > 0 && colDiff < 0) angle = 225;
+            else if (rowDiff === 0 && colDiff < 0) angle = 360;
+            else if (rowDiff < 0 && colDiff < 0) angle = 315;
+            
+            return angle;
+        }
+    
+        function updateArrowTarget() {
+            if (!wolverineActive) return;
+            
+            let targetRow = null;
+            let targetCol = null;
+            
+            if (wolverineLocation === currentLocation) {
+                targetRow = playerRow;
+                targetCol = playerCol;
+            } else if (wolverineTargetTransition) {
+                targetRow = wolverineTargetTransition.row;
+                targetCol = wolverineTargetTransition.col;
+            } else {
+                const location = locations[wolverineLocation];
+                if (location && location.grid.transitions && location.grid.transitions.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * location.grid.transitions.length);
+                    wolverineTargetTransition = {
+                        ...location.grid.transitions[randomIndex],
+                        location: wolverineLocation
+                    };
+                    targetRow = wolverineTargetTransition.row;
+                    targetCol = wolverineTargetTransition.col;
+                }
+            }
+            
+            if (targetRow !== null && targetCol !== null) {
+                targetArrowAngle = getArrowRotation(wolverineRow, wolverineCol, targetRow, targetCol);
+            }
+        }
+    
+        function animateArrow() {
+            if (!wolverineActive) {
+                arrowAnimationFrame = requestAnimationFrame(animateArrow);
+                return;
+            }
+
+            if (wolverineMoving) {
+                arrowAnimationFrame = requestAnimationFrame(animateArrow);
+                return;
+            }
+            
+            const diff = targetArrowAngle - currentArrowAngle;
+            
+            let normalizedDiff = diff;
+            if (diff > 180) {
+                normalizedDiff = diff - 360;
+            } else if (diff < -180) {
+                normalizedDiff = diff + 360;
+            }
+            
+            if (Math.abs(normalizedDiff) > 0.5) {
+                currentArrowAngle += normalizedDiff * 0.1;
+            } else {
+                currentArrowAngle = targetArrowAngle;
+            }
+            
+            let displayAngle = currentArrowAngle;
+            while (displayAngle < 0) displayAngle += 360;
+            while (displayAngle >= 360) displayAngle -= 360;
+            
+            const arrowElement = document.getElementById('wolverine-arrow');
+            if (arrowElement) {
+                arrowElement.style.transform = `rotate(${displayAngle}deg)`;
+            }
+            
+            arrowAnimationFrame = requestAnimationFrame(animateArrow);
+        }
+    
+        function renderGrid() {
+            const location = locations[currentLocation];
+            if (!location) return;
+            
+            const grid = location.grid;
+            let html = '';
+            
+            fieldTable.style.backgroundImage = `url('${location.fieldBackground}')`;
+            
+            for (let row = 0; row < grid.rows; row++) {
+                html += '<tr>';
+                for (let col = 0; col < grid.cols; col++) {
+                    html += '<td>';
+                    html += '<div class="cage_items">';
+                    
+                    const character = location.characters?.find(c => c.row === row && c.col === col);
+                    if (character) {
+                        let layersHtml = '';
+                        character.layers.forEach(layer => {
+                            layersHtml += `<div class="cat-layer" style="background-image: url('${layer}');"></div>`;
+                        });
+                        html += `<div class="other-cat">${layersHtml}</div>`;
+                    }
+                    
+                    if (row === playerRow && col === playerCol) {
+                        html += `<div class="cat-container">
+                            <div class="cat-layer" style="background-image: url('https://allwebs.ru/images/2026/03/10/7457012d89a6c19187e4ac3ab256ebf6.png');"></div>
+                        </div>`;
+                    }
+                    
+                    if (wolverineActive && wolverineLocation === currentLocation && row === wolverineRow && col === wolverineCol) {
+                        updateArrowTarget();
+                        
+                        html += `<span class="catWithArrow">`;
+                        html += `<div style="position: relative; width: 100%; height: 100%;">`;
+                        html += `<div class="arrow arrow-paws" id="wolverine-arrow" style="position: absolute; top: 60px; left: -20px; transform: rotate(${currentArrowAngle}deg); opacity: 1; transform-origin: center center;">`;
+                        html += `<table style="width: 60px; margin: 0;">`;
+                        html += `<tbody><tr>`;
+                        html += `<td class="arrow_green" style="width: 60px;"></td>`;
+                        html += `</tr></tbody></table>`;
+                        html += `</div>`;
+                        html += `<div class="wolverine" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">`;
+                        html += `<div class="cat-layer" style="background-size: 100%; background-image: url('https://allwebs.ru/images/2026/02/18/0c61a43ec0554805d67882a0b9231bc9.png'); position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>`;
+                        html += `</div></div></span>`;
+                        
+                        if (!arrowAnimationFrame) {
+                            animateArrow();
+                        }
+                    }
+                    
+                    const transition = grid.transitions?.find(t => t.row === row && t.col === col);
+                    if (transition) {
+                        html += `
+                            <span class="move_parent" data-type="transition" data-next="${transition.nextLocation}" data-row="${row}" data-col="${col}">
+                                <span class="move_name">${transition.name}</span>
+                            </span>
+                        `;
+                    }
+                    
+                    const special = grid.specialTransitions?.find(t => t.row === row && t.col === col);
+                    if (special) {
+                        html += `
+                            <span class="move_parent" data-type="special" data-name="${special.name}" data-row="${row}" data-col="${col}">
+                                <span class="move_name">${special.name}</span>
+                            </span>
+                        `;
+                    }
+                    
+                    html += '</div>';
+                    html += '</td>';
+                }
+                html += '</tr>';
+            }
+            
+            fieldTable.innerHTML = html;
+            
+            document.querySelectorAll('.move_parent').forEach(parent => {
+                parent.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (meetingDialogActive || !gameActive || dialogActive || dialogJustFinished || dialogCooldown) return;
+                    
+                    playClickSound();
+                    
+                    const type = this.dataset.type;
+                    const row = parseInt(this.dataset.row);
+                    const col = parseInt(this.dataset.col);
+                    
+                    if (type === 'transition') {
+                        const nextLocation = this.dataset.next;
+                        if (nextLocation && locations[nextLocation]) {
+                            startPlayerMove(nextLocation, row, col);
+                        }
+                    } else if (type === 'special') {
+                    }
+                });
+            });
+        }
+    
+        cancelMoveBtn.addEventListener('click', () => {
+            playClickSound();
+            cancelPlayerMove();
+        });
+    
+        tryAgainBtn.addEventListener('click', () => {
+            playClickSound();
+            messageOverlay.classList.remove('visible');
+            startGame();
+        });
+    
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.settings-panel') || e.target.closest('.settings-button')) return;
+            if (e.target.closest('.move_parent')) return;
+            if (e.target === cancelMoveBtn) return;
+            if (e.target === tryAgainBtn) return;
+            if (e.target.closest('.choice-btn')) return;
+            
+            if (waitingForChoice) return;
+            
+            if (dialogPanel.classList.contains('active') && dialogActive) {
+                if (isPrinting) {
+                    if (printTimer) clearTimeout(printTimer);
+                    isPrinting = false;
+                    printTimer = null;
+                    
+                    if (choiceComments.length > 0) {
+                        dialogText.innerHTML = choiceComments[choiceCommentIndex];
+                    } else if (meetingDialogShown && meetingDialogTexts) {
+                        dialogText.innerHTML = meetingDialogTexts[meetingDialogIndex];
+                    } else {
+                        dialogText.innerHTML = currentDialogIsItalic ? '<i>' + currentText + '</i>' : currentText;
+                    }
+                    return;
+                }
+                
+                if (choiceComments.length > 0) {
+                    if (choiceCommentIndex < choiceComments.length - 1) {
+                        choiceCommentIndex++;
+                        printDialog(choiceComments[choiceCommentIndex], false);
+                    } else {
+                        choiceComments = [];
+                        dialogPanel.classList.remove('active');
+                        dialogActive = false;
+                        
+                        if (currentChoiceData && currentChoiceData.isCorrect) {
+                            meetingDialogActive = false;
+                            dialogCooldown = false;
+                            
+                            if (wasPlayerMoving && playerSavedTime > 0) {
+                                playerTimeLeft = playerSavedTime;
+                                cancelAvailable = true;
+                                updateCancelButton();
+                                
+                                if (playerTimer) clearInterval(playerTimer);
+                                playerTimer = setInterval(() => {
+                                    if (!gameActive) return;
+                                    playerTimeLeft--;
+                                    updatePlayerTimer();
+                                    if (playerTimeLeft <= 0) {
+                                        completePlayerMove();
+                                    }
+                                }, 1000);
+                            }
+                            
+                            if (wolverineActive) {
+                                if (wasWolverineMoving && wolverineSavedTime > 0) {
+                                    wolverineTimeLeft = wolverineSavedTime;
+                                    wolverineMoving = true;
+                                    if (wolverineTimer) clearInterval(wolverineTimer);
+                                    wolverineTimer = setInterval(() => {
+                                        if (!gameActive) return;
+                                        wolverineTimeLeft--;
+                                        if (wolverineTimeLeft <= 0) {
+                                            completeWolverineMoveOnLocation();
+                                        }
+                                    }, 1000);
+                                } else {
+                                    wolverineMoving = false;
+                                    wolverineTimeLeft = 0;
+                                    if (wolverineTimer) {
+                                        clearInterval(wolverineTimer);
+                                        wolverineTimer = null;
+                                    }
+                                    
+                                    setTimeout(() => {
+                                        resumeWolverineMovement();
+                                    }, 100);
+                                }
+                            } else {
+                                renderGrid();
+                            }
+                        } else {
+                            showChoicePanel();
+                        }
+                    }
+                    return;
+                }
+
+                if (meetingDialogShown && meetingDialogTexts) {
+                    if (meetingDialogIndex < meetingDialogTexts.length - 1) {
+                        meetingDialogIndex++;
+                        printDialog(meetingDialogTexts[meetingDialogIndex], false);
+                    } else {
+                        dialogPanel.classList.remove('active');
+                        dialogActive = false;
+                        showChoicePanel();
+                    }
+                    return;
+                }
+                
+                const wasInitialDialog = initialDialogActive;
+                initialDialogActive = false;
+                
+                dialogPanel.classList.remove('active');
+                dialogActive = false;
+                meetingDialogActive = false;
+                dialogJustFinished = true;
+                
+                setTimeout(() => {
+                    dialogCooldown = false;
+                }, 1000);
+                
+                if (wasInitialDialog) {
+                    setTimeout(() => {
+                        dialogJustFinished = false;
+                        if (!wolverineActive && gameActive) {
+                            spawnWolverine();
+                        }
+                    }, 500);
+                } else {
+                    if (wasPlayerMoving && playerSavedTime > 0) {
+                        playerTimeLeft = playerSavedTime;
+                        cancelAvailable = true;
+                        updateCancelButton();
+                        
+                        if (playerTimer) clearInterval(playerTimer);
+                        playerTimer = setInterval(() => {
+                            if (!gameActive || meetingDialogActive) return;
+                            playerTimeLeft--;
+                            updatePlayerTimer();
+                            if (playerTimeLeft <= 0) {
+                                completePlayerMove();
+                            }
+                        }, 1000);
+                    }
+                    
+                    if (wasWolverineMoving && wolverineSavedTime > 0) {
+                        wolverineTimeLeft = wolverineSavedTime;
+                        if (wolverineTimer) clearInterval(wolverineTimer);
+                        wolverineTimer = setInterval(() => {
+                            if (!gameActive || meetingDialogActive) return;
+                            wolverineTimeLeft--;
+                            if (wolverineTimeLeft <= 0) {
+                                completeWolverineMoveOnLocation();
+                            }
+                        }, 1000);
+                    }
+                    
+                    setTimeout(() => {
+                        dialogJustFinished = false;
+                    }, 500);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
