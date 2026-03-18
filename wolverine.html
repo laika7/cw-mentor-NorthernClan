@@ -3831,9 +3831,7 @@
         });
     
         tryAgainBtn.addEventListener('click', () => {
-            playClickSound();
-            messageOverlay.classList.remove('visible');
-            startGame();
+            location.reload();
         });
     
         document.addEventListener('click', function(e) {
