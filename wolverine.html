@@ -2617,7 +2617,7 @@
         let wolverinePendingMove = null;
         let cancelAvailable = true;
     
-        const escapeLocations = ['перевал', 'мёрзлые земли', 'скалистая гряда', 'святилище гор'];
+        const escapeLocations = ['перевал', 'мёрзлые земли'];
         
         function startGame() {
             currentLocation = 'перевал';
@@ -3809,6 +3809,13 @@
                     
                     if (type === 'transition') {
                         const nextLocation = this.dataset.next;
+                        const transitionName = this.querySelector('.move_name').textContent;
+                        
+                        if (meetingDialogShown && (transitionName === 'Горы' || transitionName === 'Пологий склон')) {
+                            playerEscaped();
+                            return;
+                        }
+                        
                         if (nextLocation && locations[nextLocation]) {
                             startPlayerMove(nextLocation, row, col);
                         }
