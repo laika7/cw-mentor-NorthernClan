@@ -4381,8 +4381,6 @@
             if (attackerName === 'Окутанная Розовым') {
                 return;
             }
-            
-            console.log('startNicheAttack called', attackerName);
             nicheAttackers.active = true;
             
             const location = locations[currentLocation];
@@ -4427,8 +4425,6 @@
                 angle: pos.angle,
                 image: images[pos.name]
             }));
-            
-            console.log('Attackers set:', nicheAttackers.attackers);
             
             renderGrid();
             
