@@ -485,31 +485,6 @@
             margin-top: 5px;
         }
 
-        .safe-message {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(43, 50, 59, 0.95);
-            border: 4px solid #41CD70;
-            border-radius: 8px;
-            padding: 40px 80px;
-            color: #41CD70;
-            font-family: Impact, 'Arial Black', sans-serif;
-            font-size: 2.5rem;
-            text-align: center;
-            z-index: 300;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-        }
-
-        .safe-message.visible {
-            display: block;
-            opacity: 1;
-        }
-
         .death-overlay {
             position: fixed;
             top: 0;
@@ -687,6 +662,30 @@
             height: 150px;
         }
 
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(43, 50, 59, 0.95);
+            border: 2px solid #707580;
+            border-radius: 8px;
+            padding: 15px 30px;
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 1.2rem;
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        .notification.visible {
+            opacity: 1;
+        }
+
         @media (max-width: 768px) {
             .game-field-wrapper {
                 justify-content: flex-start;
@@ -805,9 +804,9 @@
         <div class="choice-feedback" id="choiceFeedback"></div>
     </div>
     
-    <div class="safe-message" id="safeMessage">Ты в безопасности! Молодец!</div>
-    
     <div class="death-overlay" id="deathOverlay"></div>
+
+    <div class="notification" id="notification"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <script>
@@ -839,7 +838,15 @@
         let wasWolverineLocation = null;
         let wasWolverineRow = 0;
         let wasWolverineCol = 0;
-                
+        let nicheAttackers = {
+            active: false,
+            attackers: []
+        };
+        let currentNicheDialog = null;
+        let currentNicheAttacker = '';
+        let nicheDialogIndex = 0;
+        let notificationTimeout = null;
+        
         const savedTrackIndex = localStorage.getItem('northTrackIndex');
         let currentTrackIndex = savedTrackIndex ? parseInt(savedTrackIndex) : 0;
         const savedTrackTime = localStorage.getItem('northTrackTime');
@@ -901,18 +908,13 @@
     
         musicVolumeSlider.addEventListener('input', (e) => {
             backgroundMusic.volume = e.target.value;
+            dangerMusic.volume = e.target.value;
             localStorage.setItem('northMusicVolume', e.target.value);
         });
     
         typingVolumeSlider.addEventListener('input', (e) => {
             typingSound.volume = e.target.value;
             localStorage.setItem('northTypingVolume', e.target.value);
-        });
-
-        musicVolumeSlider.addEventListener('input', (e) => {
-            backgroundMusic.volume = e.target.value;
-            dangerMusic.volume = e.target.value;
-            localStorage.setItem('northMusicVolume', e.target.value);
         });
     
         trackSelect.addEventListener('change', (e) => {
@@ -1006,6 +1008,84 @@
                         { row: 5, col: 4, name: 'Величавый склон' },
                         { row: 5, col: 8, name: 'Грязное место' }
                     ]
+                }
+            },
+            'Прочная ниша': {
+                name: 'Прочная ниша',
+                background: 'https://pic.maxiol.com/images2/1773861178.784318299.89001.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773861178.784318299.89001.jpg',
+                characters: [
+                    { 
+                        row: 4, col: 4, 
+                        name: 'Полуденье', 
+                        layers: ['https://pic.maxiol.com/images2/1773861310.784318299.zagruzhennoe44444.png']
+                    },
+                    { 
+                        row: 4, col: 5, 
+                        name: 'Дикая Охота', 
+                        layers: ['https://pic.maxiol.com/images2/1773861333.784318299.shaman2.png']
+                    },
+                    { 
+                        row: 4, col: 6, 
+                        name: 'Тёплый Вечер', 
+                        layers: ['https://pic.maxiol.com/images2/1773861373.784318299.e6695f7a45bdf5b0.png']
+                    }
+                ],
+                items: [
+                    {
+                        row: 4, col: 7,
+                        image: 'https://pic.maxiol.com/images2/1773861556.784318299.987.png'
+                    },
+                    {
+                        row: 3, col: 5,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 2, col: 4,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 2, col: 6,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 2, col: 3,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 3, col: 2,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 4, col: 2,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 5, col: 3,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 2, col: 7,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 3, col: 8,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 4, col: 8,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                    {
+                        row: 5, col: 7,
+                        image: 'https://pic.maxiol.com/images2/1773900983.1567825077.20.png'
+                    },
+                ],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [],
+                    specialTransitions: []
                 }
             },
             'ельник': {
@@ -1384,11 +1464,10 @@
                     cols: 10,
                     transitions: [
                         { row: 2, col: 0, nextLocation: 'переправа', name: 'Переправа' },
-                        { row: 5, col: 6, nextLocation: 'прорва', name: 'Прорва' }
+                        { row: 5, col: 6, nextLocation: 'прорва', name: 'Прорва' },
+                        { row: 5, col: 0, nextLocation: 'мель', name: 'Мель' }
                     ],
-                    specialTransitions: [
-                        { row: 5, col: 0, name: 'Мель' }
-                    ]
+                    specialTransitions: []
                 }
             },
             'переправа': {
@@ -1509,6 +1588,59 @@
                         { row: 0, col: 2, nextLocation: 'неприметная опора', name: 'Неприметная опора' },
                         { row: 5, col: 6, nextLocation: 'шепчущий поток', name: 'Шепчущий поток' }
                     ]
+                }
+            },
+            'мель': {
+                name: 'Мель',
+                background: 'https://pic.maxiol.com/images2/1773903777.1567825077.89179.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773903777.1567825077.89179.jpg',
+                characters: [],
+                items: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 9, nextLocation: 'морозный яр', name: 'Морозный яр' },
+                        { row: 5, col: 0, nextLocation: 'глубина', name: 'Глубина' }
+                    ],
+                    specialTransitions: []
+                }
+            },
+            'глубина': {
+                name: 'Глубина',
+                background: 'https://pic.maxiol.com/images2/1773903864.1567825077.89180.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773903864.1567825077.89180.jpg',
+                characters: [],
+                items: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 9, nextLocation: 'мель', name: 'Мель' },
+                        { row: 5, col: 0, nextLocation: 'дно ледяной реки', name: 'Дно ледяной реки' }
+                    ],
+                    specialTransitions: []
+                }
+            },
+            'дно ледяной реки': {
+                name: 'Дно ледяной реки',
+                background: 'https://pic.maxiol.com/images2/1773903977.1567825077.89181.jpg',
+                fieldBackground: 'https://pic.maxiol.com/images2/1773903977.1567825077.89181.jpg',
+                characters: [
+                    { 
+                        row: 2, col: 7, 
+                        name: 'Окутанная Розовым', 
+                        layers: ['https://pic.maxiol.com/images2/1773904027.1567825077.roz.png', 'https://pic.maxiol.com/images2/1773917511.1442389930.7.png']
+                    }
+                ],
+                items: [],
+                grid: {
+                    rows: 6,
+                    cols: 10,
+                    transitions: [
+                        { row: 0, col: 9, nextLocation: 'глубина', name: 'Глубина' }
+                    ],
+                    specialTransitions: []
                 }
             }
         };
@@ -2426,6 +2558,114 @@
                     ]
                 }
             },
+            'манящий обрыв': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'неприметная опора': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
+            'рокочущий откос': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды!',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Пологий склон находится очень далеко, а росомаха с лёгкостью может догнать тебя.',
+                        'Но есть другие варианты! Попробуешь ещё раз?'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится далековато... Может, есть ещё варианты?'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход в горы находится далеко, не стоит играть в догонялки с росомахой. Есть ли ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Да! Это самый лучший вариант. Скорее беги в лагерь и прячься в номерных локациях!',
+                        'Не забудь прихватить с собой во рту котят, находящихся в статусе онлайн, и предупреди соклановцев в чате.'
+                    ]
+                }
+            },
             'прорва': {
                 'В глубокие воды': {
                     isCorrect: false,
@@ -2570,6 +2810,114 @@
                     ]
                 }
             },
+            'мель': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Нужно скорее покинуть эту сеть водных локаций.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Нет, это слишком далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится очень далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'К сожалению, горы слишком далеко. Ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Необходимо покинуть водные локации через Морозный яр.',
+                        'Не волнуйся, но помни, что здесь ты тратишь сонливость.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'глубина': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Нужно скорее покинуть эту сеть водных локаций.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Нет, это слишком далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится очень далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'К сожалению, горы слишком далеко. Ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Необходимо покинуть водные локации через Морозный яр.',
+                        'Не волнуйся, но помни, что здесь ты тратишь сонливость.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
+            'дно ледяной реки': {
+                'В глубокие воды': {
+                    isCorrect: false,
+                    comments: [
+                        'При нападении росомахи ни в коем случае нельзя убегать через глубокие воды! Нужно скорее покинуть эту сеть водных локаций.',
+                        'Росомахе не составит труда догнать тебя там, а ты можешь при этом утонуть.',
+                        'В ином случае сонливость будет критической. Росомаха с лёгкостью убьёт персонажа.'
+                    ]
+                },
+                'Пойду на лазательные локации (Пологий склон)': {
+                    isCorrect: false,
+                    comments: [
+                        'Нет, это слишком далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В Мёрзлые земли': {
+                    isCorrect: false,
+                    comments: [
+                        'Переход находится очень далеко. Попробуй ещё раз!'
+                    ]
+                },
+                'В горы через Ледопад': {
+                    isCorrect: false,
+                    comments: [
+                        'К сожалению, горы слишком далеко. Ещё варианты?'
+                    ]
+                },
+                'На Перевал': {
+                    isCorrect: true,
+                    comments: [
+                        'Конечно! Необходимо покинуть водные локации через Морозный яр.',
+                        'Не волнуйся, но помни, что здесь ты тратишь сонливость.',
+                        'Не забудь во время пути предупреждать соклановцев в статусе онлайн о беде и по возможности брать их в рот, унося с собой.'
+                    ]
+                }
+            },
         };
 
 
@@ -2589,7 +2937,6 @@
         const choicePanel = document.getElementById('choicePanel');
         const choiceButtons = document.getElementById('choiceButtons');
         const choiceFeedback = document.getElementById('choiceFeedback');
-        const safeMessage = document.getElementById('safeMessage');
         const deathOverlay = document.getElementById('deathOverlay');
     
         let currentLocation = 'перевал';
@@ -2618,7 +2965,7 @@
         let cancelAvailable = true;
     
         const escapeLocations = ['перевал', 'мёрзлые земли'];
-        
+    
         function startGame() {
             currentLocation = 'перевал';
             playerRow = 0;
@@ -2645,7 +2992,6 @@
             wolverinePendingMove = null;
             document.getElementById('actionBar').style.display = 'none';
             choicePanel.classList.remove('visible');
-            safeMessage.classList.remove('visible');
             deathOverlay.classList.remove('visible');
             
             if (playerTimer) {
@@ -2739,14 +3085,10 @@
     
         function spawnWolverine() {
             const outdoorLocations = [
-                'ельник', 'величественный бор', 'редкий сосняк', 'лесистая круча',
-                'пихтовый коридор', 'узкая прогалина', 'высокие лиственницы',
-                'заиндевевшие кусты голубики', 'лавинный конус', 'крутой подъём',
-                'хребет', 'горбатая гора', 'ледопад', 'морозный яр', 'переправа',
-                'дрейфующие льды', 'каменистая мель', 'вороникин кряж', 'тёмное низовье'
+                'ельник', 'величественный бор'
             ];
             
-            const forbiddenLocations = ['перевал', 'мёрзлые земли', 'скалистая гряда', 'святилище гор'];
+            const forbiddenLocations = ['перевал', 'мёрзлые земли'];
             
             const availableLocations = outdoorLocations.filter(loc => 
                 loc !== currentLocation && !forbiddenLocations.includes(loc)
@@ -3205,6 +3547,117 @@
             wolverineTargetTransition = null;
             renderGrid();
             startWolverineMoveOnNewLocation();
+            
+            if (nextLocation !== currentLocation) {
+                let notificationText = '';
+                switch(nextLocation) {
+                    case 'ельник':
+                        notificationText = 'Из Ельника слышно недовольное фырчание...';
+                        break;
+                    case 'величественный бор':
+                        notificationText = 'Я слышу обеспокоенный птичий щебет в Величественном боре...';
+                        break;
+                    case 'пихтовый коридор':
+                        notificationText = 'Какие-то крики доносятся с логова Барсука-Визгуна...';
+                        break;
+                    case 'узкая прогалина':
+                        notificationText = 'Какие-то крики доносятся с логова Барсука-Визгуна...';
+                        break;
+                    case 'высокие лиственницы':
+                        notificationText = 'Какие-то крики доносятся с логова Барсука-Визгуна...';
+                        break;
+                    case 'редкий сосняк':
+                        notificationText = 'Какие-то крики доносятся с логова Барсука-Визгуна...';
+                        break;
+                    case 'лесистая круча':
+                        notificationText = 'Какие-то крики доносятся с логова Барсука-Визгуна...';
+                        break;
+                    case 'дрейфующие льды':
+                        notificationText = 'Дрейфующие льды трескаются под чьими-то тяжёлыми шагами...';
+                        break;
+                    case 'каменистая мель':
+                        notificationText = 'Слышу плеск на Каменистой мели...';
+                        break;
+                    case 'начало ледяного моста':
+                        notificationText = 'Я слышу, как разгребаются воды ледяного моста под чьими-то мощными лапами...';
+                        break;
+                    case 'конец ледяного моста':
+                        notificationText = 'Я слышу, как разгребаются воды ледяного моста под чьими-то мощными лапами...';
+                        break;
+                    case 'святилище гор':
+                        notificationText = 'Яростный вой доносится со стороны Святилища гор...';
+                        break;
+                    case 'неумолимое течение':
+                        notificationText = 'В Неумолимом течении кто-то яростно плещется...';
+                        break;
+                    case 'тёмное низовье':
+                        notificationText = 'В Тёмном низовье кто-то яростно плещется...';
+                        break;
+                    case 'вороникин кряж':
+                        notificationText = 'Тревожное карканье доносится со стороны Вороникиного кряжа... Кто-то побеспокоил находящихся там птиц.';
+                        break;
+                    case 'заиндевевшие кусты голубики':
+                        notificationText = 'Многоголосый писк зверьков слышен отсюда! Кто-то позарился на добычу в Заиндевевших кустах голубики...';
+                        break;
+                    case 'крутой подъём':
+                        notificationText = 'Я слышу яростный рёв на Крутом подъёме...';
+                        break;
+                    case 'лавинный конус':
+                        notificationText = 'Я слышу топот со стороны Лавинного конуса...';
+                        break;
+                    case 'место-где-огни-касаются-земли':
+                        notificationText = 'Яростный вой проносится по округе с Места-Где-Огни-Касаются-Земли...';
+                        break;
+                    case 'хребет':
+                        notificationText = 'Громкий топот заглушает мышиный писк на Хребте...';
+                        break;
+                    case 'горбатая гора':
+                        notificationText = 'Оглушительный шорох осыпающихся камней слышен отсюда... Похоже, кто-то очень тяжёлый попробовал забраться на скалы.';
+                        break;
+                    case 'ледопад':
+                        notificationText = 'Кто-то громко царапает когтями Ледопад...';
+                        break;
+                    case 'морозный яр':
+                        notificationText = 'Кто-то очень большой ходит вдоль Морозного яра...';
+                        break;
+                    case 'Мель':
+                        notificationText = 'Со стороны Мели слышны громкие плески!';
+                        break;
+                    case 'глубина':
+                        notificationText = 'Похоже, кто-то очень большой нырнул на Глубину...';
+                        break;
+                    case 'дно ледяной реки':
+                        notificationText = 'Какое-то бульканье на Дне ледяной реки...';
+                        break;
+                    case 'переправа':
+                        notificationText = 'Дерево угрожающе скрипит под чьим-то весом на Переправе...';
+                        break;
+                    case 'манящий обрыв':
+                        notificationText = 'Яростный вой доносится с Манящего обрыва...';
+                        break;
+                    case 'неприметная опора':
+                        notificationText = 'Дикий визг слышен с Неприметной опоры...';
+                        break;
+                    case 'рокочущий откос':
+                        notificationText = 'На Рокочущем откосе кто-то громко взвыл...';
+                        break;
+                    case 'гиблый омут':
+                        notificationText = 'Яростные плески слышны в Гиблом омуте...';
+                        break;
+                    case 'прорва':
+                        notificationText = 'Яростные плески слышны в Прорве...';
+                        break;
+                    case 'шепчущий о гибели бурный поток':
+                        notificationText = 'Яростные плески слышны в Шепчущем потоке...';
+                        break;
+                    case 'неспокойные воды морливой излучины':
+                        notificationText = 'Яростные плески слышны в Морливой излучине...';
+                        break;
+                    default:
+                        notificationText = `Росомаха перешла на ${locations[nextLocation]?.name || nextLocation}`;
+                }
+                showNotification(notificationText);
+            }
         }
 
         function startWolverineMoveOnNewLocation() {
@@ -3255,10 +3708,7 @@
             if (isMoving || !gameActive || dialogActive || dialogJustFinished || meetingDialogActive) return;
             
             if (escapeAttempted && escapeLocations.includes(nextLocation)) {
-                safeMessage.classList.add('visible');
-                setTimeout(() => {
-                    safeMessage.classList.remove('visible');
-                }, 3000);
+                playerEscaped();
                 return;
             }
             
@@ -3268,12 +3718,14 @@
             
             if (nextLocation === 'перевал') {
                 if (meetingDialogShown) {
-                    safeMessage.classList.add('visible');
-                    setTimeout(() => {
-                        safeMessage.classList.remove('visible');
-                    }, 3000);
+                    playerEscaped();
                     return;
                 }
+                playerEscaped();
+                return;
+            }
+            
+            if (escapeLocations.includes(nextLocation) && meetingDialogShown) {
                 playerEscaped();
                 return;
             }
@@ -3739,7 +4191,12 @@
                         character.layers.forEach(layer => {
                             layersHtml += `<div class="cat-layer" style="background-image: url('${layer}');"></div>`;
                         });
-                        html += `<div class="other-cat">${layersHtml}</div>`;
+                        html += `<div class="other-cat" data-character="${character.name}" data-row="${row}" data-col="${col}" style="cursor: pointer;">${layersHtml}</div>`;
+                    }
+
+                    const item = location.items?.find(i => i.row === row && i.col === col);
+                    if (item) {
+                        html += `<div class="item" style="background: url('${item.image}') 0% 0% no-repeat; width: 100%; height: 100%; position: absolute; top: 0; left: 0; pointer-events: none; z-index: 5;"></div>`;
                     }
                     
                     if (row === playerRow && col === playerCol) {
@@ -3748,6 +4205,25 @@
                         </div>`;
                     }
                     
+                    if (nicheAttackers.active) {
+                        nicheAttackers.attackers.forEach(attacker => {
+                            if (attacker.row === row && attacker.col === col) {
+                                let angle = attacker.angle;
+                                html += `<span class="catWithArrow">`;
+                                html += `<div style="position: relative; width: 100%; height: 100%;">`;
+                                html += `<div class="arrow arrow-paws" style="position: absolute; top: 60px; left: -20px; transform: rotate(${angle}deg); opacity: 1; transform-origin: center center;">`;
+                                html += `<table style="width: 60px; margin: 0;">`;
+                                html += `<tbody><tr>`;
+                                html += `<td class="arrow_green" style="width: 60px;"></td>`;
+                                html += `</tr></tbody></table>`;
+                                html += `</div>`;
+                                html += `<div class="wolverine" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">`;
+                                html += `<div class="cat-layer" style="background-size: 100%; background-image: url('${attacker.image}'); position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>`;
+                                html += `</div></div></span>`;
+                            }
+                        });
+                    }
+
                     if (wolverineActive && wolverineLocation === currentLocation && row === wolverineRow && col === wolverineCol) {
                         updateArrowTarget();
                         
@@ -3820,9 +4296,21 @@
                             startPlayerMove(nextLocation, row, col);
                         }
                     } else if (type === 'special') {
+                        const specialName = this.dataset.name;
+                        
+                        if (locations[specialName]) {
+                            startPlayerMove(specialName, row, col);
+                        }
                     }
                 });
             });
+    
+            setTimeout(() => {
+                document.querySelectorAll('.other-cat').forEach(el => {
+                    el.removeEventListener('click', handleNicheClick);
+                    el.addEventListener('click', handleNicheClick);
+                });
+            }, 10);
         }
     
         cancelMoveBtn.addEventListener('click', () => {
@@ -3834,6 +4322,128 @@
             location.reload();
         });
     
+        function handleNicheClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (!gameActive || meetingDialogActive || dialogActive) return;
+            
+            const characterName = this.dataset.character;
+            
+            choiceComments = [];
+            
+            if (characterName === 'Полуденье') {
+                currentNicheDialog = [
+                    { speaker: 'Полуденье', text: 'Хм?', isItalic: false },
+                    { speaker: 'Полуденье', text: 'Полуденье кинула на вас пронзительный взгляд.', isItalic: true },
+                    { speaker: 'Полуденье', text: 'Что в нише делаешь?', isItalic: false },
+                    { speaker: 'Вы', text: 'Просто...', isItalic: false },
+                    { speaker: 'Полуденье', text: 'Понятно.', isItalic: false },
+                    { speaker: 'Полуденье', text: 'НИШЕВСКИЕ, В АТАКУ!!!', isItalic: false }
+                ];
+                currentNicheAttacker = 'Полуденье';
+            } else if (characterName === 'Дикая Охота') {
+                currentNicheDialog = [
+                    { speaker: 'Дикая Охота', text: 'Хм?', isItalic: false },
+                    { speaker: 'Дикая Охота', text: 'Дикая Охота кинул на вас пронзительный взгляд.', isItalic: true },
+                    { speaker: 'Дикая Охота', text: 'Что творишь?', isItalic: false },
+                    { speaker: 'Вы', text: 'Просто...', isItalic: false },
+                    { speaker: 'Дикая Охота', text: 'Понятно.', isItalic: false },
+                    { speaker: 'Дикая Охота', text: 'НИШЕВСКИЕ, В АТАКУ!!!', isItalic: false }
+                ];
+                currentNicheAttacker = 'Дикая Охота';
+            } else if (characterName === 'Тёплый Вечер') {
+                currentNicheDialog = [
+                    { speaker: 'Тёплый Вечер', text: 'Это моя няшечка-вкусняшечка.', isItalic: false },
+                    { speaker: 'Вы', text: '...', isItalic: false },
+                    { speaker: 'Тёплый Вечер', text: 'НИШЕВСКИЕ, В АТАКУ!!!', isItalic: false }
+                ];
+                currentNicheAttacker = 'Тёплый Вечер';
+            } else if (characterName === 'Окутанная Розовым') {
+                currentNicheDialog = [
+                    { speaker: 'Окутанная Розовым', text: '*буль-буль*', isItalic: true },
+                    { speaker: 'Вы', text: '*буль-буль...*', isItalic: true }
+                ];
+                currentNicheAttacker = 'Окутанная Розовым';
+            }
+            
+            if (currentNicheDialog) {
+                nicheDialogIndex = 0;
+                dialogPanel.classList.add('active');
+                speakerName.textContent = currentNicheDialog[0].speaker;
+                printDialog(currentNicheDialog[0].text, currentNicheDialog[0].isItalic, () => {});
+            }
+        }
+    
+        function startNicheAttack(attackerName) {
+            if (!gameActive || nicheAttackers.active) return;
+
+            if (attackerName === 'Окутанная Розовым') {
+                return;
+            }
+            
+            console.log('startNicheAttack called', attackerName);
+            nicheAttackers.active = true;
+            
+            const location = locations[currentLocation];
+            
+            const poludenye = location.characters?.find(c => c.name === 'Полуденье');
+            const dikayaOhota = location.characters?.find(c => c.name === 'Дикая Охота');
+            const teplyVecher = location.characters?.find(c => c.name === 'Тёплый Вечер');
+            
+            const images = {
+                'Полуденье': poludenye?.layers[0] || 'https://pic.maxiol.com/images2/1773861310.784318299.zagruzhennoe44444.png',
+                'Дикая Охота': dikayaOhota?.layers[0] || 'https://pic.maxiol.com/images2/1773861333.784318299.shaman2.png',
+                'Тёплый Вечер': teplyVecher?.layers[0] || 'https://pic.maxiol.com/images2/1773861373.784318299.e6695f7a45bdf5b0.png'
+            };
+            
+            if (location.characters) {
+                location.characters = location.characters.filter(c => 
+                    c.name !== 'Полуденье' && c.name !== 'Дикая Охота' && c.name !== 'Тёплый Вечер'
+                );
+            }
+            
+            const maxRow = location.grid.rows - 1;
+            const maxCol = location.grid.cols - 1;
+            
+            let positions = [
+                { name: 'Полуденье', row: playerRow, col: playerCol + 1, angle: 0 },
+                { name: 'Дикая Охота', row: playerRow + 1, col: playerCol + 1, angle: 65 },
+                { name: 'Тёплый Вечер', row: playerRow + 1, col: playerCol, angle: 90 }
+            ];
+            
+            positions = positions.map(pos => {
+                if (pos.row < 0) pos.row = 0;
+                if (pos.row > maxRow) pos.row = maxRow;
+                if (pos.col < 0) pos.col = 0;
+                if (pos.col > maxCol) pos.col = maxCol;
+                return pos;
+            });
+            
+            nicheAttackers.attackers = positions.map(pos => ({
+                name: pos.name,
+                row: pos.row,
+                col: pos.col,
+                angle: pos.angle,
+                image: images[pos.name]
+            }));
+            
+            console.log('Attackers set:', nicheAttackers.attackers);
+            
+            renderGrid();
+            
+            setTimeout(() => {
+                if (!gameActive) return;
+                
+                deathOverlay.classList.add('visible');
+                messageText.textContent = 'Вас убили нишевские...';
+                messageOverlay.classList.add('visible');
+                gameActive = false;
+                cancelAvailable = false;
+                updateCancelButton();
+            }, 2000);
+        }
+
         document.addEventListener('click', function(e) {
             if (e.target.closest('.settings-panel') || e.target.closest('.settings-button')) return;
             if (e.target.closest('.move_parent')) return;
@@ -3844,6 +4454,38 @@
             if (waitingForChoice) return;
             
             if (dialogPanel.classList.contains('active') && dialogActive) {
+                if (currentNicheDialog) {
+                    if (isPrinting) {
+                        if (printTimer) clearTimeout(printTimer);
+                        isPrinting = false;
+                        printTimer = null;
+                        dialogText.innerHTML = currentNicheDialog[nicheDialogIndex].isItalic ? 
+                            '<i>' + currentNicheDialog[nicheDialogIndex].text + '</i>' : 
+                            currentNicheDialog[nicheDialogIndex].text;
+                        return;
+                    }
+                    
+                    if (nicheDialogIndex < currentNicheDialog.length - 1) {
+                        nicheDialogIndex++;
+                        const nextLine = currentNicheDialog[nicheDialogIndex];
+                        speakerName.textContent = nextLine.speaker;
+                        printDialog(nextLine.text, nextLine.isItalic, () => {});
+                    } else {
+                        dialogPanel.classList.remove('active');
+                        dialogActive = false;
+                        
+                        if (currentNicheAttacker === 'Окутанная Розовым') {
+                            currentNicheDialog = null;
+                            currentNicheAttacker = '';
+                            return;
+                        }
+                        
+                        currentNicheDialog = null;
+                        startNicheAttack();
+                    }
+                    return;
+                }
+                
                 if (isPrinting) {
                     if (printTimer) clearTimeout(printTimer);
                     isPrinting = false;
@@ -3988,6 +4630,20 @@
                 }
             }
         });
-    </script>
+
+        function showNotification(text) {
+            const notification = document.getElementById('notification');
+            notification.textContent = text;
+            notification.classList.add('visible');
+            
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+            }
+            
+            notificationTimeout = setTimeout(() => {
+                notification.classList.remove('visible');
+            }, 2000);
+        }
+</script>
 </body>
 </html>
