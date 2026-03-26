@@ -568,7 +568,7 @@ body {
 <body>
     <canvas id="bg-img"></canvas>
     
-    <div class="copyright">ⓒ Воющий</div>
+    <div class="copyright">ⓒ Волчий Вой</div>
     
     <button class="settings-button" id="settingsButton">⚙</button>
     
@@ -605,7 +605,7 @@ body {
     </div>
     
     <div class="dialog-panel" id="dialogPanel">
-        <div class="speaker-name" id="speakerName">Воющий</div>
+        <div class="speaker-name" id="speakerName">Волчий Вой</div>
         <div class="dialog-text" id="dialogText"></div>
         <div class="dialog-hint" id="dialogHint">▼</div>
     </div>
@@ -1006,7 +1006,7 @@ body {
             probnikDialogIndex = 0;
             dialogPanel.classList.add('active');
             character.classList.add('visible');
-            speakerName.textContent = 'Воющий';
+            speakerName.textContent = 'Волчий Вой';
             printDialog(probnikDialogs[0].text, probnikDialogs[0].isItalic);
         }
         
@@ -1017,7 +1017,7 @@ body {
             praktikiDialogIndex = 0;
             dialogPanel.classList.add('active');
             character.classList.add('visible');
-            speakerName.textContent = 'Воющий';
+            speakerName.textContent = 'Волчий Вой';
             printDialog(praktikiDialogs[0].text, praktikiDialogs[0].isItalic);
         }
         
@@ -1037,12 +1037,12 @@ body {
         function startFirstVisitDialogs() {
             dialogPanel.classList.add('active');
             character.classList.add('visible');
-            speakerName.textContent = 'Воющий';
+            speakerName.textContent = 'Волчий Вой';
             dialogStep = 0;
             mainDialogIndex = 0;
             mainDialogTexts = [
-                'Привет, мой дорогой воспитанник! Я Воющий, твой наставник. Буду рад ознакомить тебя с нашим кланом.',
-                'Воющий сел рядом с вами, приветливо обвив хвостом.',
+                'Привет, мой дорогой воспитанник! Я Волчий Вой, твой наставник. Буду рад ознакомить тебя с нашим кланом.',
+                'Волчий Вой сел рядом с вами, приветливо обвив хвостом.',
                 'Представься!'
             ];
             printDialog(mainDialogTexts[0], false);
@@ -1051,7 +1051,7 @@ body {
         function startReturnVisitDialogs() {
             dialogPanel.classList.add('active');
             character.classList.add('visible');
-            speakerName.textContent = 'Воющий';
+            speakerName.textContent = 'Волчий Вой';
             printDialog(`С возвращением, ${savedName}! Продолжим?`, false);
         }
         
@@ -1163,7 +1163,7 @@ body {
             }, 500);
             
             dialogStep = 3;
-            speakerName.textContent = 'Воющий';
+            speakerName.textContent = 'Волчий Вой';
             printDialog(`Хорошо, ${name}, перейдём к нашему обучению. Надеюсь, для тебя это будет увлекательно!`, false);
         }
         
