@@ -1569,7 +1569,7 @@
                 }
                 
                 finalMsgIndex = 0;
-                setInputState('Отправьте результат', true, finalMessages[0]);
+                setInputState('Отправь результат', true, finalMessages[0]);
             }
 
             function endGameTimeout() {
@@ -1597,7 +1597,7 @@
                 if (instructTriggered && instructSentCount < instructMessages.length && !distributionReady) {
                     instructSentCount++;
                     if (instructSentCount < instructMessages.length) {
-                        setInputState('Отправьте следующее сообщение', true, instructMessages[instructSentCount]);
+                        setInputState('Отправь следующее сообщение', true, instructMessages[instructSentCount]);
                     } else {
                         instructSentCount = 0;
                         distributionReady = true;
@@ -1607,7 +1607,7 @@
                 else if (finalMessages.length > 0 && finalMsgIndex < finalMessages.length) {
                     finalMsgIndex++;
                     if (finalMsgIndex < finalMessages.length) {
-                        setInputState('Отправьте следующее сообщение', true, finalMessages[finalMsgIndex]);
+                        setInputState('Отправь следующее сообщение', true, finalMessages[finalMsgIndex]);
                     } else {
                         startDialog([
                             { text: 'Молодец! Теперь иди. На охотничьей локации не забудь огласить правила и шаблон отписи (скопировать из блога Охотников).', isItalic: false },
@@ -1672,14 +1672,15 @@
                                 initialDialogDone = true;
                                 const phrases = ['Лапки на охоту?', 'Желающие на охоту?'];
                                 const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-                                setInputState('Нажмите ОК для отправки', true, randomPhrase);
+                                setInputState('Нажми ОК для отправки', true, randomPhrase);
                             } 
-                            else if (instructTriggered && meetingDialogTexts.length === 1 && meetingDialogTexts[0].text.includes('Не забудь кинуть инструктаж')) {
-                                setInputState('Отправьте инструктаж', true, instructMessages[0]);
+                            else if (instructTriggered && meetingDialogTexts.length === 3 && meetingDialogTexts[0].text.includes('Не забудь кинуть инструктаж')) {
+                                setInputState('Отправь инструктаж', true, instructMessages[0]);
                             }
                             else if (meetingDialogTexts.length === 3 && meetingDialogTexts[2].text.includes('Волчий Вой смотрел')) {
                                 showSuccessOverlay();
                             }
+                            
                             meetingDialogTexts = [];
                             meetingDialogIndex = 0;
                         }
