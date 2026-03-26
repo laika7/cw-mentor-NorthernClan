@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Сбор охоты</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #2b323b;
+            position: relative;
+            overflow-x: auto;
+            overflow-y: auto;
+            font-family: 'Bookman Old Style', 'Times New Roman', serif;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: auto;
+            overflow-y: auto;
+            z-index: 1;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .chat-column {
+            flex: 0 0 450px;
+            background-color: rgba(36, 36, 36, 0.95);
+            border-right: 4px solid #707580;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            margin-top: 70px;
+            margin-bottom: 30px;
+            z-index: 3;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+        }
+
+        .chat-header {
+            background: rgba(43, 50, 59, 0.95);
+            color: #d3dce8;
+            padding: 15px;
+            border-bottom: 2px solid #707580;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background-color: rgba(30, 37, 43, 0.95);
+        }
+
+        .chat-message {
+            color: #d3dce8;
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-word;
+            border-bottom: 1px solid #70758050;
+            padding-bottom: 4px;
+        }
+
+        .chat-message.pupil-message {
+            font-size: 19px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            background: rgba(43, 50, 59, 0.95);
+            border-top: 2px solid #707580;
+            gap: 8px;
+        }
+        .chat-input-area input {
+            flex: 1;
+            background: rgba(30, 37, 43, 0.95);
+            border: 2px solid #707580;
+            border-radius: 20px;
+            padding: 10px 15px;
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 17px;
+            outline: none;
+        }
+        .chat-input-area input:focus {
+            border-color: #d3dce8;
+        }
+        .chat-input-area input::placeholder {
+            color: #707580;
+            font-style: italic;
+        }
+        .chat-input-area button {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 20px;
+            padding: 0 20px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .chat-input-area button:hover:not(:disabled) {
+            background: #707580;
+            color: #2b323b;
+        }
+        .chat-input-area button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .game-column {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .location-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(3px) brightness(0.7);
+            z-index: 1;
+        }
+
+        .game-field-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(43, 50, 59, 0.3);
+            z-index: 2;
+        }
+
+        .game-field-wrapper {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .game-field {
+            background: rgba(0, 0, 0, 0.6);
+            border: 4px solid #707580;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .location-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .location-name {
+            color: #d3dce8;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 2rem;
+            text-align: center;
+            text-shadow: 2px 2px 0 #2b323b;
+        }
+
+        .timer-display {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 20px;
+            padding: 5px 20px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .field-table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .field-table td {
+            width: 100px;
+            height: 150px;
+            padding: 0;
+            margin: 0;
+            border: none;
+            position: relative;
+            vertical-align: top;
+        }
+
+        .cage_items {
+            width: 100px;
+            height: 150px;
+            position: relative;
+        }
+
+        .move_parent {
+            display: block;
+            position: relative;
+            width: 100px;
+            height: 150px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .move_name {
+            display: block;
+            position: absolute;
+            font-size: 11px;
+            bottom: 43px;
+            left: 4px;
+            width: 92px;
+            text-align: center;
+            background-color: RGBA(255, 255, 255, 0.5);
+            border-radius: 10px;
+            padding: 0 3px 1px 3px;
+            margin: 0;
+            word-break: break-word;
+            box-sizing: border-box;
+            color: #2b323b;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .cat-container {
+            width: 100px;
+            height: 150px;
+            position: relative;
+            z-index: 15;
+        }
+
+        .cat-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            pointer-events: none;
+        }
+
+        .copyright {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            color: rgba(211, 220, 232, 0.2);
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+            z-index: 100;
+            pointer-events: none;
+            background: transparent;
+            text-shadow: none;
+        }
+
+        .settings-button {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: #2b323b;
+            color: #d3dce8;
+            border: 1.5px solid #707580;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0.7;
+            z-index: 101;
+        }
+
+        .settings-button:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+            opacity: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: #2b323b;
+            color: #d3dce8;
+            border: 1.5px solid #707580;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0.7;
+            z-index: 101;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background: #707580;
+            color: #2b323b;
+            border-color: #d3dce8;
+            opacity: 1;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 60px;
+            right: 15px;
+            width: 280px;
+            background: #2b323b;
+            border: 2px solid #707580;
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 102;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .settings-panel.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .setting-item input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #707580;
+            border-radius: 2px;
+            -webkit-appearance: none;
+        }
+
+        .setting-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #d3dce8;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #707580;
+        }
+
+        .track-select {
+            width: 100%;
+            padding: 8px;
+            background: #1e252b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 4px;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .track-select option {
+            background: #2b323b;
+            color: #d3dce8;
+        }
+
+        .current-track {
+            color: #a7b3c3;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .dialog-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #2b323b;
+            border-top: 4px solid #707580;
+            padding: 20px 40px 20px 120px;
+            color: #d3dce8;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.5);
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .dialog-panel.active {
+            transform: translateY(0);
+        }
+
+        .dialog-panel::before {
+            content: '';
+            position: absolute;
+            left: 40px;
+            top: 20px;
+            bottom: 20px;
+            width: 4px;
+            background: linear-gradient(to bottom, #d3dce8, #707580);
+            border-radius: 2px;
+        }
+
+        .speaker-name {
+            font-family: Impact, 'Arial Black', sans-serif;
+            color: #cad0de;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s;
+        }
+
+        .dialog-panel.active .speaker-name {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .dialog-text {
+            line-height: 1.6;
+            min-height: 60px;
+        }
+
+        .dialog-text i {
+            color: #a7b3c3;
+        }
+
+        .dialog-hint {
+            align-self: flex-end;
+            color: #707580;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            animation: pulse 1.5s infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .dialog-panel.active .dialog-hint {
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .message-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #d3dce8;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 3rem;
+            text-shadow: 4px 4px 0 #2b323b, 8px 8px 0 rgba(0,0,0,0.5);
+            letter-spacing: 4px;
+            text-align: center;
+            z-index: 1001;
+            background: rgba(43, 50, 59, 0.8);
+            padding: 40px 80px;
+            border: 4px solid #707580;
+            border-radius: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .message-overlay.visible {
+            display: flex;
+        }
+
+        .try-again-button {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 4px solid #cad0de;
+            padding: 15px 40px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 0 #000000;
+            letter-spacing: 2px;
+        }
+
+        .try-again-button:hover {
+            background: #707580;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0 #000000;
+        }
+
+        .distribution-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2b323b;
+            border: 4px solid #707580;
+            border-radius: 8px;
+            padding: 25px;
+            z-index: 200;
+            color: #d3dce8;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            min-width: 600px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none;
+        }
+        .distribution-panel.visible {
+            display: block;
+        }
+        .distribution-panel h3 {
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #d3dce8;
+        }
+        .location-distribution {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #707580;
+            background: rgba(112,117,128,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .location-distribution h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #d3dce8;
+        }
+        .role-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .role-row label {
+            width: 100px;
+            font-weight: bold;
+            color: #a7b3c3;
+        }
+        .role-row input {
+            flex: 1;
+            min-width: 200px;
+            background: #1e252b;
+            border: 2px solid #707580;
+            border-radius: 20px;
+            padding: 8px 12px;
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            outline: none;
+        }
+        .role-row select {
+            flex: 1;
+            min-width: 200px;
+            background: #1e252b;
+            border: 2px solid #707580;
+            border-radius: 20px;
+            padding: 8px 12px;
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            outline: none;
+            cursor: pointer;
+        }
+        .add-location-btn {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 2px solid #707580;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+            display: block;
+            width: 100%;
+        }
+        .add-location-btn:hover {
+            background: #707580;
+            color: #2b323b;
+        }
+        .remove-location-btn {
+            background: #8b3a3a;
+            color: #d3dce8;
+            border: none;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        .remove-location-btn:hover {
+            background: #a55252;
+        }
+        .distribute-btn {
+            background: #2b323b;
+            color: #d3dce8;
+            border: 4px solid #cad0de;
+            padding: 15px 40px;
+            font-family: Impact, 'Arial Black', sans-serif;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 0 #000000;
+            letter-spacing: 2px;
+            display: block;
+            margin: 20px auto 0;
+        }
+        .distribute-btn:hover {
+            background: #707580;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0 #000000;
+        }
+        .note-text {
+            font-size: 0.8rem;
+            color: #a7b3c3;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(43, 50, 59, 0.95);
+            border: 1px solid #6a6a6a;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: #d3dce8;
+            font-family: 'Bookman Old Style', serif;
+            font-size: 1rem;
+            text-align: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+        }
+
+        .notification-toast.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            #game-container {
+                flex-direction: column;
+            }
+            .chat-column {
+                flex: 0 0 auto;
+                width: 100%;
+                height: 300px;
+                margin-top: 50px;
+                margin-bottom: 10px;
+                border-right: none;
+                border-bottom: 4px solid #707580;
+            }
+            .game-column {
+                height: calc(100vh - 350px);
+            }
+            .field-table td {
+                width: 80px;
+                height: 120px;
+            }
+            .distribution-panel {
+                min-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="chat-column">
+            <div class="chat-header">Чат</div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="..." readonly>
+                <button id="sendChatBtn" disabled>OK</button>
+            </div>
+        </div>
+
+        <div class="game-column">
+            <div class="location-bg" id="locationBg" style="background-image: url('https://pic.maxiol.com/images2/1773163035.784318299.89000.jpg');"></div>
+            <div class="game-field-overlay"></div>
+            <div class="game-field-wrapper">
+                <div class="game-field">
+                    <div class="location-header">
+                        <div class="location-name" id="locationName">Перевал</div>
+                        <div class="timer-display" id="timerDisplay">05:00</div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="field-table" id="fieldTable" style="background-image: url('https://pic.maxiol.com/images2/1773163035.784318299.89000.jpg');">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="distribution-panel" id="distributionPanel">
+        <h3>Распределить охотников</h3>
+        <div id="locationsContainer"></div>
+        <button class="distribute-btn" id="submitDistribution">Распределить</button>
+    </div>
+
+    <div class="copyright">ⓒ Волчий Вой</div>
+    
+    <button class="settings-button" id="settingsButton">⚙</button>
+    <a href="emergency.html" class="back-button">←</a>
+    
+    <div class="settings-panel" id="settingsPanel">
+        <div class="setting-item">
+            <label>Фоновая музыка</label>
+            <input type="range" id="musicVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Звук печатания</label>
+            <input type="range" id="typingVolume" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="setting-item">
+            <label>Сменить музыку</label>
+            <select class="track-select" id="trackSelect">
+                <option value="0">Музыка 1</option>
+                <option value="1">Музыка 2</option>
+                <option value="2">Музыка 3</option>
+                <option value="3">Музыка 4</option>
+                <option value="4">Музыка 5</option>
+                <option value="5">Музыка 6</option>
+                <option value="6">Музыка 7</option>
+            </select>
+            <div class="current-track" id="currentTrackDisplay">Сейчас играет: Музыка 1</div>
+        </div>
+    </div>
+    
+    <div class="dialog-panel" id="dialogPanel">
+        <div class="speaker-name" id="speakerName">Волчий Вой</div>
+        <div class="dialog-text" id="dialogText"></div>
+        <div class="dialog-hint" id="dialogHint">▼</div>
+    </div>
+    
+    <div class="message-overlay" id="messageOverlay">
+        <div id="messageText"></div>
+        <button class="try-again-button" id="tryAgainBtn">ПОПРОБОВАТЬ СНОВА</button>
+    </div>
+
+    <div class="notification-toast" id="notificationToast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script>
+        (function() {
+            let soundEnabled = localStorage.getItem('northSoundEnabled') !== 'false';
+            let typingSoundEnabled = localStorage.getItem('northTypingSoundEnabled') !== 'false';
+            
+            const savedTrackIndex = localStorage.getItem('northTrackIndex');
+            let currentTrackIndex = savedTrackIndex ? parseInt(savedTrackIndex) : 0;
+            const savedTrackTime = localStorage.getItem('northTrackTime');
+            const savedTrackTimeNum = savedTrackTime ? parseFloat(savedTrackTime) : 0;
+        
+            const tracks = ['assets/music1.mp3', 'assets/music2.mp3', 'assets/music3.mp3', 'assets/music4.mp3', 'assets/music5.mp3', 'assets/music6.mp3', 'assets/music7.mp3'];
+            const trackNames = ['Музыка 1', 'Музыка 2', 'Музыка 3', 'Музыка 4', 'Музыка 5', 'Музыка 6', 'Музыка 7'];
+        
+            const backgroundMusic = new Audio();
+            backgroundMusic.src = tracks[currentTrackIndex];
+            const typingSound = new Audio();
+            typingSound.src = 'assets/typing.mp3';
+            typingSound.volume = localStorage.getItem('northTypingVolume') ? parseFloat(localStorage.getItem('northTypingVolume')) : 1;
+            const clickSound = new Audio();
+            clickSound.src = 'assets/click.mp3';
+            clickSound.volume = localStorage.getItem('northClickVolume') ? parseFloat(localStorage.getItem('northClickVolume')) : 0.5;
+            backgroundMusic.loop = false;
+        
+            const settingsButton = document.getElementById('settingsButton');
+            const settingsPanel = document.getElementById('settingsPanel');
+            const musicVolumeSlider = document.getElementById('musicVolume');
+            const typingVolumeSlider = document.getElementById('typingVolume');
+            const trackSelect = document.getElementById('trackSelect');
+            const currentTrackDisplay = document.getElementById('currentTrackDisplay');
+        
+            function playClickSound() {
+                if (soundEnabled) {
+                    clickSound.currentTime = 0;
+                    clickSound.play().catch(e => console.log('Звук клика не может быть воспроизведен:', e));
+                }
+            }
+        
+            settingsButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playClickSound();
+                settingsPanel.classList.toggle('visible');
+            });
+        
+            document.addEventListener('click', (e) => {
+                if (!settingsPanel.contains(e.target) && !settingsButton.contains(e.target)) {
+                    settingsPanel.classList.remove('visible');
+                }
+            });
+        
+            musicVolumeSlider.addEventListener('input', (e) => {
+                backgroundMusic.volume = e.target.value;
+                localStorage.setItem('northMusicVolume', e.target.value);
+            });
+        
+            typingVolumeSlider.addEventListener('input', (e) => {
+                typingSound.volume = e.target.value;
+                localStorage.setItem('northTypingVolume', e.target.value);
+            });
+        
+            trackSelect.addEventListener('change', (e) => {
+                const wasPlaying = soundEnabled && !backgroundMusic.paused;
+                if (wasPlaying) backgroundMusic.pause();
+                currentTrackIndex = parseInt(e.target.value);
+                backgroundMusic.src = tracks[currentTrackIndex];
+                currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+                if (wasPlaying) backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+                localStorage.setItem('northTrackIndex', currentTrackIndex);
+            });
+        
+            musicVolumeSlider.value = localStorage.getItem('northMusicVolume') || 1;
+            typingVolumeSlider.value = localStorage.getItem('northTypingVolume') || 1;
+            backgroundMusic.volume = musicVolumeSlider.value;
+            typingSound.volume = typingVolumeSlider.value;
+            trackSelect.value = currentTrackIndex;
+            currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+        
+            function playCurrentTrack() {
+                if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                    backgroundMusic.currentTime = savedTrackTimeNum;
+                }
+                backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+            }
+        
+            function saveTrackState() {
+                localStorage.setItem('northTrackIndex', currentTrackIndex);
+                localStorage.setItem('northTrackTime', backgroundMusic.currentTime);
+            }
+        
+            function updateSoundUI() {
+                if (soundEnabled) {
+                    playCurrentTrack();
+                } else {
+                    backgroundMusic.pause();
+                    saveTrackState();
+                }
+                localStorage.setItem('northSoundEnabled', soundEnabled);
+            }
+        
+            backgroundMusic.addEventListener('ended', () => {
+                saveTrackState();
+                currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+                backgroundMusic.src = tracks[currentTrackIndex];
+                trackSelect.value = currentTrackIndex;
+                currentTrackDisplay.textContent = `Сейчас: ${trackNames[currentTrackIndex]}`;
+                if (soundEnabled) backgroundMusic.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+                saveTrackState();
+            });
+        
+            window.addEventListener('beforeunload', () => saveTrackState());
+            window.addEventListener('load', () => {
+                if (savedTrackTimeNum > 0 && savedTrackTimeNum < backgroundMusic.duration) {
+                    backgroundMusic.currentTime = savedTrackTimeNum;
+                }
+                updateSoundUI();
+            });
+            updateSoundUI();
+
+            const PUPIL_NAME = localStorage.getItem('northUserName') || 'Вы';
+            const AVAILABLE_LOCATIONS = ['Величественный бор', 'Морозный яр', 'Заиндевевшие кусты голубики'];
+
+            function parseCatRole(message, name) {
+                const msg = message.toLowerCase();
+                if (msg.includes('я носить') || msg.includes('я, нести') || 
+                    msg.includes('я, носильщик') || msg.includes('я, носить') || 
+                    msg.includes('я носильщик') || msg.includes('я нести')) {
+                    return { name: name, role: 'носильщик', canBeHunter: false, canBeLeader: false };
+                }
+                if (msg.includes('я нв') || msg.includes('я не вести') || 
+                    msg.includes('я, нв') || msg.includes('я, не вести') ||
+                    msg.includes('лапа нв') || msg.includes('лапа, не вести')) {
+                    return { name: name, role: 'нв', canBeHunter: true, canBeLeader: false };
+                }
+                return { name: name, role: 'охотник', canBeHunter: true, canBeLeader: true };
+            }
+
+            const ALL_CATS = [
+                { name: 'Окутанная Розовым' }, { name: 'Старый Хрыч' }, { name: 'Чернеющая' }, { name: 'Красоточка' },
+                { name: 'Пламелапушка' }, { name: 'Укур Рыси' }, { name: 'Выжига' }, { name: 'Полуночь' }, { name: 'Пряный Мёд' }, 
+                { name: 'Грань Света' }, { name: 'Солнечнопляска' }, { name: 'Метель' }, { name: 'Вещие Грёзы' }, { name: 'Внешний Цвет' }, 
+                { name: 'Сырая Няша' }
+            ];
+
+            const characters = [
+                { row: 1, col: 0, name: 'Окутанная Розовым', image: 'https://pic.maxiol.com/images2/1773904027.1567825077.roz.png' },
+                { row: 0, col: 3, name: 'Старый Хрыч', image: 'https://pic.maxiol.com/images2/1774423974.784317019.hrip.png' },
+                { row: 0, col: 1, name: 'Чернеющая', image: 'https://pic.maxiol.com/images2/1774425443.784317019.cherni.png' },
+                { row: 2, col: 8, name: 'Красоточка', image: 'https://pic.maxiol.com/images2/1774465040.784317019.krasot.png' },
+                { row: 2, col: 7, name: 'Пламелапушка', image: 'https://pic.maxiol.com/images2/1774424133.784317019.plamel.png' },
+                { row: 5, col: 9, name: 'Укур Рыси', image: 'https://pic.maxiol.com/images2/1774423332.784317019.ukus.png' },
+                { row: 0, col: 6, name: 'Выжига', image: 'https://pic.maxiol.com/images2/1774423891.784317019.vyzh.png' },
+                { row: 0, col: 7, name: 'Полуночь', image: 'https://pic.maxiol.com/images2/1774423947.784317019.polun.png' },
+                { row: 0, col: 8, name: 'Пряный Мёд', image: 'https://pic.maxiol.com/images2/1774423999.784317019.med.png' },
+                { row: 4, col: 7, name: 'Грань Света', image: 'https://pic.maxiol.com/images2/1774424024.784317019.gran.png' },
+                { row: 1, col: 4, name: 'Солнечнопляска', image: 'https://pic.maxiol.com/images2/1774424047.784317019.solnechnopl.png' },
+                { row: 4, col: 0, name: 'Метель', image: 'https://pic.maxiol.com/images2/1774424402.784317019.metel.png' },
+                { row: 3, col: 5, name: 'Вещие Грёзы', image: 'https://pic.maxiol.com/images2/1774424610.784317019.grezy.png' },
+                { row: 4, col: 4, name: 'Внешний Цвет', image: 'https://pic.maxiol.com/images2/1774424827.784317019.cvet.png' },
+                { row: 3, col: 0, name: 'Сырая Няша', image: 'https://pic.maxiol.com/images2/1774425947.784317019.nyasha.png' },
+
+            ];
+
+            const RESPONSE_PHRASES = {
+                hunter: ['Я', 'Лапа'],
+                notLeader: ['Я нв', 'Я не вести', 'Я, нв', 'Я, не вести', 'Лапа нв', 'Лапа, не вести'],
+                carrier: ['Я носить', 'Я, нести', 'Я, носильщик', 'Я, носить']
+            };
+
+            const instructMessages = [
+                "Перед началом охоты ознакомьтесь с инструктажем.",
+                "Охота длится 20 минут, оставшееся время даётся на уборку. Разрешается ловить до 3 единиц любой упитанности.",
+                "По приходе на локации ведущим следует дождаться отстающих, а затем объявить время окончания охоты и шаблон отчёта.",
+                "Охотникам на мышей требуется отнести пойманную добычу в Прочную нишу под камень в левом нижнем углу и отписаться мне в ЛС по шаблону [l[n]ink[/n]ID] (n дичи).",
+                "Старайтесь поймать столько, сколько позволяют унести места во рту, но не более 3 штук.",
+                "Не забывайте придерживаться правил поведения в Прочной нише — запрещены задержки, прыжки на кучи и посещение Шепчущих покоев с Каменным карнизом.",
+                "Собирающий патруль обязан убедиться, что куча в Прочной нише накрыта камнем. Если открыта, то разрешается зайти и исправить это в силу возраста.",
+                "Остальная дичь должна быть отнесена в Склад под снегом в соответствии с разделением куч по упитанности."
+            ];
+
+            const transitions = [
+                { row: 0, col: 4, nextLocation: 'крутой подъём', name: 'Крутой подъём' },
+                { row: 5, col: 0, nextLocation: 'ельник', name: 'Ельник' },
+                { row: 3, col: 7, name: 'Склад под снегом' },
+                { row: 2, col: 0, name: 'Прочная ниша' },
+                { row: 5, col: 4, name: 'Величавый склон' },
+                { row: 5, col: 8, name: 'Грязное место' }
+            ];
+
+            let timerInterval = null;
+            let timerSeconds = 300;
+            let gameActive = true;
+            let initialDialogDone = false;
+            let instructTriggered = false;
+            let instructSentCount = 0;
+            let distributionReady = false;
+            let distributionShown = false;
+            let finalMessages = [];
+            let finalMsgIndex = 0;
+            
+            let respondedCats = [];
+            let locationsData = [];
+
+            let isPrinting = false;
+            let printTimer = null;
+            let dialogActive = false;
+            let meetingDialogTexts = [];
+            let meetingDialogIndex = 0;
+
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendChatBtn');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const distributionPanel = document.getElementById('distributionPanel');
+            const locationsContainer = document.getElementById('locationsContainer');
+            const messageOverlay = document.getElementById('messageOverlay');
+            const messageText = document.getElementById('messageText');
+            const tryAgainBtn = document.getElementById('tryAgainBtn');
+            const dialogPanel = document.getElementById('dialogPanel');
+            const speakerName = document.getElementById('speakerName');
+            const dialogText = document.getElementById('dialogText');
+            const fieldTable = document.getElementById('fieldTable');
+
+            function addChatMessage(text, sender = null) {
+                const msgDiv = document.createElement('div');
+                if (sender === PUPIL_NAME) {
+                    msgDiv.className = 'chat-message pupil-message';
+                } else {
+                    msgDiv.className = 'chat-message';
+                }
+                if (sender) {
+                    msgDiv.textContent = text + ' - ' + sender;
+                } else {
+                    msgDiv.textContent = text;
+                }
+                chatMessages.insertBefore(msgDiv, chatMessages.firstChild);
+            }
+
+            function setInputState(placeholder, enabled = false, value = '') {
+                chatInput.placeholder = placeholder;
+                chatInput.value = value;
+                sendBtn.disabled = !enabled;
+            }
+
+            function printDialog(text, isItalic, callback) {
+                if (printTimer) clearTimeout(printTimer);
+                let index = 0;
+                dialogText.innerHTML = '';
+                isPrinting = true;
+                dialogActive = true;
+                dialogPanel.classList.add('active');
+                
+                function type() {
+                    if (index < text.length) {
+                        if (isItalic) {
+                            dialogText.innerHTML = '<i>' + text.substring(0, index + 1) + '</i>';
+                        } else {
+                            dialogText.innerHTML = text.substring(0, index + 1);
+                        }
+                        index++;
+                        if (typingSoundEnabled && typingSound.volume > 0) {
+                            typingSound.currentTime = 0;
+                            typingSound.play().catch(e => {});
+                        }
+                        printTimer = setTimeout(type, 30);
+                    } else {
+                        isPrinting = false;
+                        printTimer = null;
+                        if (callback) callback();
+                    }
+                }
+                type();
+            }
+
+            function startDialog(dialogList) {
+                meetingDialogTexts = dialogList;
+                meetingDialogIndex = 0;
+                printDialog(meetingDialogTexts[0].text, meetingDialogTexts[0].isItalic, () => {});
+            }
+
+            function generateRandomCatResponses() {
+                const catsCount = Math.floor(Math.random() * 8) + 3;
+                const shuffled = [...ALL_CATS].sort(() => Math.random() - 0.5);
+                const selectedCats = shuffled.slice(0, catsCount);
+                let hasHunter = false;
+                const responses = [];
+                
+                selectedCats.forEach((cat) => {
+                    const typeRand = Math.random();
+                    let roleType, phrases;
+                    let adjustedRand = typeRand;
+                    if (!hasHunter) {
+                        adjustedRand = typeRand * 0.8;
+                    }
+                    
+                    if (adjustedRand < 0.6) {
+                        roleType = 'hunter';
+                        phrases = RESPONSE_PHRASES.hunter;
+                        hasHunter = true;
+                    } else if (adjustedRand < 0.85) {
+                        roleType = 'notLeader';
+                        phrases = RESPONSE_PHRASES.notLeader;
+                    } else {
+                        roleType = 'carrier';
+                        phrases = RESPONSE_PHRASES.carrier;
+                    }
+                    
+                    const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+                    const responseText = randomPhrase.replace('{name}', cat.name);
+                    const delay = Math.random() * 160000 + 1000;
+                    responses.push({ cat, responseText, delay, roleType });
+                });
+                
+                if (!hasHunter && responses.length > 0) {
+                    const lastIndex = responses.length - 1;
+                    const last = responses[lastIndex];
+                    const hunterPhrases = RESPONSE_PHRASES.hunter;
+                    const randomHunterPhrase = hunterPhrases[Math.floor(Math.random() * hunterPhrases.length)];
+                    responses[lastIndex] = {
+                        ...last,
+                        responseText: randomHunterPhrase.replace('{name}', last.cat.name),
+                        roleType: 'hunter'
+                    };
+                }
+                
+                responses.forEach(({ cat, responseText, delay }) => {
+                    setTimeout(() => {
+                        if (gameActive && !instructTriggered && !distributionReady) {
+                            addChatMessage(responseText, cat.name);
+                            const catRole = parseCatRole(responseText, cat.name);
+                            respondedCats.push(catRole);
+                        }
+                    }, delay);
+                });
+            }
+
+            function saveAllData() {
+                const ridgeInput = document.getElementById('ridgeHunters');
+                if (ridgeInput) {
+                    window.ridgeHuntersValue = ridgeInput.value;
+                }
+                for (let i = 0; i < locationsData.length; i++) {
+                    const locDiv = document.querySelector(`.location-distribution[data-loc-idx="${i+1}"]`);
+                    if (locDiv) {
+                        const leader = locDiv.querySelector('.loc-leader')?.value.trim() || '';
+                        const hunters = locDiv.querySelector('.loc-hunters')?.value.split(',').map(s => s.trim()).filter(s => s) || [];
+                        const carriers = locDiv.querySelector('.loc-carriers')?.value.split(',').map(s => s.trim()).filter(s => s) || [];
+                        locationsData[i].leader = leader;
+                        locationsData[i].hunters = hunters;
+                        locationsData[i].carriers = carriers;
+                    }
+                }
+            }
+
+            function renderDistributionPanel() {
+                const oldRidgeHunters = document.getElementById('ridgeHunters')?.value || '';
+                const oldRidgeCarriers = document.getElementById('ridgeCarriers')?.value || '';
+                const selectedLocNames = locationsData.map(l => l.location);
+                const availableForNew = AVAILABLE_LOCATIONS.filter(loc => !selectedLocNames.includes(loc));
+                const showRidgeCarriers = locationsData.length === 0;
+                
+                let html = `
+                    <div class="location-distribution" data-loc-idx="0">
+                        <h4>Хребет</h4>
+                        <div class="role-row">
+                            <label>Охотники:</label>
+                            <input type="text" id="ridgeHunters" value="${oldRidgeHunters.replace(/"/g, '&quot;')}" placeholder="Имена через запятую с большой буквы">
+                        </div>`;
+                
+                if (showRidgeCarriers) {
+                    html += `
+                        <div class="role-row">
+                            <label>Носильщики:</label>
+                            <input type="text" id="ridgeCarriers" value="${oldRidgeCarriers.replace(/"/g, '&quot;')}" placeholder="Имена через запятую с большой буквы">
+                        </div>`;
+                } else {
+                    html += `<input type="hidden" id="ridgeCarriers" value="${oldRidgeCarriers.replace(/"/g, '&quot;')}">`;
+                }
+                
+                html += `<div class="note-text">* Оставь поле с носильщиками пустым, если их нет.</div>
+                <div class="note-text">** Если ставишь себя, то пиши «Я».</div>
+                </div>`;
+                
+                for (let i = 0; i < locationsData.length; i++) {
+                    const loc = locationsData[i];
+                    const availableOptions = AVAILABLE_LOCATIONS.filter(l => !selectedLocNames.includes(l) || l === loc.location);
+                    
+                    html += `
+                        <div class="location-distribution" data-loc-idx="${i+1}">
+                            <h4>
+                                <select class="loc-select" data-idx="${i+1}" style="background: #1e252b; color: #d3dce8; border: 2px solid #707580; border-radius: 20px; padding: 5px 10px; font-size: 1.1rem;">
+                                    ${availableOptions.map(locName => `<option value="${locName}" ${loc.location === locName ? 'selected' : ''}>${locName}</option>`).join('')}
+                                </select>
+                            </h4>
+                            <div class="role-row">
+                                <label>Ведущий:</label>
+                                <input type="text" class="loc-leader" value="${(loc.leader || '').replace(/"/g, '&quot;')}" placeholder="Имя с большой буквы">
+                            </div>
+                            <div class="role-row">
+                                <label>Охотники:</label>
+                                <input type="text" class="loc-hunters" value="${loc.hunters.join(', ').replace(/"/g, '&quot;')}" placeholder="Имена через запятую с большой буквы">
+                            </div>
+                            <div class="role-row">
+                                <label>Носильщики:</label>
+                                <input type="text" class="loc-carriers" value="${loc.carriers.join(', ').replace(/"/g, '&quot;')}" placeholder="Имена через запятую с большой буквы">
+                            </div>
+                            <button class="remove-location-btn" data-idx="${i+1}">Удалить локацию</button>
+                        </div>
+                        <div class="note-text">* Если ставишь себя, то пиши «Я».</div>
+                    `;
+                }
+                
+                if (availableForNew.length > 0) {
+                    html += `<button class="add-location-btn" id="addLocationBtn">+ Добавить локацию</button>`;
+                } else {
+                    html += `<div class="note-text" style="text-align:center;">Все доступные локации уже добавлены</div>`;
+                }
+                
+                locationsContainer.innerHTML = html;
+                
+                document.querySelectorAll('.loc-select').forEach(select => {
+                    select.addEventListener('change', function() {
+                        saveAllData();
+                        const idx = parseInt(this.dataset.idx);
+                        const newValue = this.value;
+                        const oldValue = locationsData[idx-1].location;
+                        const isTaken = locationsData.some((loc, i) => i !== idx-1 && loc.location === newValue);
+                        if (isTaken) {
+                            showNotification('Эта локация уже выбрана!');
+                            this.value = oldValue;
+                            return;
+                        }
+                        locationsData[idx-1].location = newValue;
+                        renderDistributionPanel();
+                    });
+                });
+                
+                document.querySelectorAll('.remove-location-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        saveAllData();
+                        const idx = parseInt(btn.dataset.idx);
+                        locationsData.splice(idx-1, 1);
+                        renderDistributionPanel();
+                    });
+                });
+            }
+
+            function renderGrid() {
+                let html = '';
+                const rows = 6;
+                const cols = 10;
+                
+                for (let row = 0; row < rows; row++) {
+                    html += '</tr>';
+                    for (let col = 0; col < cols; col++) {
+                        html += '<td><div class="cage_items">';
+                        
+                        if (row === 0 && col === 0) {
+                            html += `<div class="cat-container">
+                                <div class="cat-layer" style="background-image: url('https://allwebs.ru/images/2026/03/10/7457012d89a6c19187e4ac3ab256ebf6.png');"></div>
+                            </div>`;
+                        }
+                        const character = characters.find(c => c.row === row && c.col === col);
+                        if (character) {
+                            html += `<div class="other-cat" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                <div class="cat-layer" style="background-image: url('${character.image}'); pointer-events: none;"></div>
+                            </div>`;
+                        }
+                        
+                        const transition = transitions.find(t => t.row === row && t.col === col);
+                        if (transition) {
+                            html += `
+                                <span class="move_parent">
+                                    <span class="move_name">${transition.name}</span>
+                                </span>
+                            `;
+                        }
+                        
+                        html += '</div></td>';
+                    }
+                    html += '</tr>';
+                }
+                
+                fieldTable.innerHTML = html;
+            }
+
+            function startInitialDialogs() {
+                gameActive = true;
+                setInputState('...', false);
+                startDialog([
+                    { text: 'Волчий Вой сел рядом с вами и подбадривающе погладил хвостом по спине, видя, что вы волнуетесь перед сбором охоты.', isItalic: true },
+                    { text: 'Всё получится! Я помогу тебе. Итак, я надеюсь, ты помнишь алгоритм сбора охоты из блога? Просто следуй ему.', isItalic: false },
+                    { text: 'Собирай!', isItalic: false }
+                ]);
+            }
+
+            function startTimer() {
+                timerInterval = setInterval(() => {
+                    if (!gameActive) return;
+                    timerSeconds--;
+                    const mins = Math.floor(timerSeconds / 60);
+                    const secs = timerSeconds % 60;
+                    timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    if (timerSeconds === 180 && !instructTriggered && !distributionReady) {
+                        instructTriggered = true;
+                        startDialog([
+                            { text: 'Не забудь кинуть инструктаж из блога Охотников!', isItalic: false },
+                            { text: 'Учти, что отправить сообщение о распределении нужно спустя 5 минут после начала сбора охоты. В данном симуляторе это не учитывается, но в настоящем сборе надо.', isItalic: false },
+                            { text: 'Если в реальном сборе охоты никто не отозвался, то пиши «Сбор окончен, охота не состоится из-за отсутствия участников» или подобное.', isItalic: false },
+                        ]);
+                    }
+                    if (timerSeconds <= 0) endGameTimeout();
+                }, 1000);
+            }
+
+            function showDistributionPanel() {
+                if (distributionShown || !distributionReady) return;
+                distributionShown = true;
+                renderDistributionPanel();
+                distributionPanel.classList.add('visible');
+            }
+
+            function validateDistribution() {
+                const ridgeHunters = document.getElementById('ridgeHunters')?.value.split(',').map(s => s.trim()).filter(s => s) || [];
+                const ridgeCarriers = document.getElementById('ridgeCarriers')?.value.split(',').map(s => s.trim()).filter(s => s) || [];
+                
+                const otherLocations = [];
+                for (let i = 0; i < locationsData.length; i++) {
+                    const locDiv = document.querySelector(`.location-distribution[data-loc-idx="${i+1}"]`);
+                    if (!locDiv) continue;
+                    const locationSelect = locDiv.querySelector('.loc-select');
+                    const leader = locDiv.querySelector('.loc-leader')?.value.trim();
+                    const hunters = locDiv.querySelector('.loc-hunters')?.value.split(',').map(s => s.trim()).filter(s => s) || [];
+                    const carriers = locDiv.querySelector('.loc-carriers')?.value.split(',').map(s => s.trim()).filter(s => s) || [];
+                    
+                    if (locationSelect && locationSelect.value) {
+                        otherLocations.push({
+                            location: locationSelect.value,
+                            leader: leader,
+                            hunters: hunters,
+                            carriers: carriers
+                        });
+                    }
+                }
+
+                const allNames = [...ridgeHunters, ...ridgeCarriers];
+                for (let loc of otherLocations) {
+                    if (loc.leader && loc.leader !== 'Я' && loc.leader.toLowerCase() !== 'я') allNames.push(loc.leader);
+                    allNames.push(...loc.hunters, ...loc.carriers);
+                }
+                const normalNames = allNames.filter(n => n !== 'Я' && n.toLowerCase() !== 'я');
+                const duplicates = normalNames.filter((name, index) => normalNames.indexOf(name) !== index);
+                if (duplicates.length > 0) {
+                    showNotification('Имена дублируются (' + [...new Set(duplicates)].join(', ') + ')');
+                    return false;
+                }
+                
+                const allRespondedNames = respondedCats.map(c => c.name);
+                const allDistributedCats = allNames.filter(n => n !== 'Я' && n.toLowerCase() !== 'я');
+                const missingCats = allDistributedCats.filter(name => !allRespondedNames.includes(name));
+                if (missingCats.length > 0) {
+                    showNotification('Котиков, что ты ввёл, нет (' + missingCats.join(', ') + '). Проверь правильность написания и большие буквы.');
+                    return false;
+                }
+                
+                const notDistributed = allRespondedNames.filter(name => !allDistributedCats.includes(name));
+                if (notDistributed.length > 0) {
+                    showNotification('Не все котики распределены: ' + notDistributed.join(', '));
+                    return false;
+                }
+                
+                let huntersOnRidge = ridgeHunters.length;
+                let huntersOnOther = 0;
+                for (let loc of otherLocations) {
+                    huntersOnOther += loc.hunters.length;
+                    if (loc.leader) {
+                        if (loc.leader === 'Я' || loc.leader.toLowerCase() === 'я') {
+                            huntersOnOther++;
+                        } else {
+                            const leaderCat = respondedCats.find(c => c.name === loc.leader);
+                            if (leaderCat && leaderCat.role !== 'носильщик') {
+                                huntersOnOther++;
+                            }
+                        }
+                    }
+                }
+                const totalHunters = huntersOnRidge + huntersOnOther;
+                
+                for (let name of ridgeHunters) {
+                    if (name === 'Я' || name.toLowerCase() === 'я') continue;
+                    const cat = respondedCats.find(c => c.name === name);
+                    if (cat && cat.role === 'носильщик') {
+                        showNotification(`Носильщик не может быть охотником на Хребте (${name}), раз есть другие локации.`);
+                        return false;
+                    }
+                }
+                
+                if (otherLocations.length === 0 && ridgeCarriers.length > 0) {
+                    for (let name of ridgeCarriers) {
+                        if (name === 'Я' || name.toLowerCase() === 'я') continue;
+                        const cat = respondedCats.find(c => c.name === name);
+                        if (cat && cat.role !== 'носильщик') {
+                            showNotification(`"${name}" не носильщик.`);
+                            return false;
+                        }
+                    }
+                } else if (otherLocations.length > 0 && ridgeCarriers.length > 0) {
+                    showNotification(`При наличии других локаций носильщики должны идти туда, а не на Хребет.`);
+                    return false;
+                }
+                
+                const isPlayerOnRidge = ridgeHunters.includes('Я') || ridgeHunters.includes('я');
+                const hasOtherLocations = otherLocations.length > 0;
+                
+                if (totalHunters === 2 && !hasOtherLocations) {
+                    if (!isPlayerOnRidge) {
+                        showNotification(`Если охотников 3 и менее, то все идут на Хребет.`);
+                        return false;
+                    }
+                } else if (hasOtherLocations) {
+                    let isPlayerLeader = false;
+                    for (let loc of otherLocations) {
+                        if (loc.leader === 'Я' || loc.leader?.toLowerCase() === 'я') {
+                            isPlayerLeader = true;
+                            break;
+                        }
+                    }
+                    if (!isPlayerLeader) {
+                        showNotification(`При распределении на другие локации ты должен быть ведущим на одной из них.`);
+                        return false;
+                    }
+                    if (isPlayerOnRidge) {
+                        showNotification(`При распределении на другие локации ты должен быть ведущим на них, а не идти на Хребет.`);
+                        return false;
+                    }
+                }
+                
+                for (let loc of otherLocations) {
+                    for (let name of loc.hunters) {
+                        if (name === 'Я' || name.toLowerCase() === 'я') continue;
+                        const cat = respondedCats.find(c => c.name === name);
+                        if (cat && cat.role === 'носильщик') {
+                            showNotification(`${name} носильщик, а не охотник.`);
+                            return false;
+                        }
+                    }
+                    
+                    for (let name of loc.carriers) {
+                        if (name === 'Я' || name.toLowerCase() === 'я') continue;
+                        const cat = respondedCats.find(c => c.name === name);
+                        if (cat && cat.role !== 'носильщик') {
+                            showNotification(`${name} не носильщик.`);
+                            return false;
+                        }
+                    }
+                    
+                    if (!loc.leader) {
+                        showNotification(`Для локации ${loc.location} нужно указать ведущего.`);
+                        return false;
+                    }
+                    
+                    if (loc.leader && loc.leader !== 'Я' && loc.leader.toLowerCase() !== 'я') {
+                        const leaderCat = respondedCats.find(c => c.name === loc.leader);
+                        if (leaderCat && leaderCat.role === 'нв') {
+                            showNotification(`${loc.leader} указал, что не хочет вести.`);
+                            return false;
+                        }
+                        if (leaderCat && leaderCat.role === 'носильщик') {
+                            showNotification(`Носильщик не может быть ведущим.`);
+                            return false;
+                        }
+                    }
+                    
+                    let totalHuntersOnLoc = loc.hunters.length;
+                    if (loc.leader) {
+                        if (loc.leader === 'Я' || loc.leader.toLowerCase() === 'я') {
+                            totalHuntersOnLoc++;
+                        } else {
+                            const leaderCat = respondedCats.find(c => c.name === loc.leader);
+                            if (leaderCat && leaderCat.role !== 'носильщик') {
+                                totalHuntersOnLoc++;
+                            }
+                        }
+                    }
+                    
+                    if (totalHuntersOnLoc > 0 && totalHuntersOnLoc < 2) {
+                        showNotification(`На локации ${loc.location} должно быть хотя бы 2 охотника, включая ведущего.`);
+                        return false;
+                    }
+                }
+                
+                if (totalHunters === 4) {
+                    if (huntersOnRidge !== 2) {
+                        showNotification(`При 4 отозвавшихся на Хребет нужно отправить 2 охотников.`);
+                        return false;
+                    }
+                    if (huntersOnOther !== 2) {
+                        showNotification(`При 4 отозвавшихся нужно отправить на другую локацию 2 охотников.`);
+                        return false;
+                    }
+                } else if (totalHunters <= 3) {
+                    if (otherLocations.length > 0) {
+                        showNotification(`Все идут на Хребет.`);
+                        return false;
+                    }
+                    if (huntersOnRidge !== totalHunters) {
+                        showNotification(`Все ${totalHunters} охотника должны идти на Хребет.`);
+                        return false;
+                    }
+                } else if (totalHunters > 4) {
+                    if (huntersOnRidge !== 3) {
+                        showNotification(`На Хребет нужно отправить 3 охотников.`);
+                        return false;
+                    }
+                }
+                
+                if (huntersOnRidge < 2 || huntersOnRidge > 3) {
+                    showNotification(`На Хребте должно быть 2-3 охотника.`);
+                    return false;
+                }
+                
+                return true;
+            }
+
+            function onDistributionSuccess() {
+                distributionPanel.classList.remove('visible');
+                clearInterval(timerInterval);
+                timerDisplay.style.opacity = '0';
+                
+                const ridgeHunters = document.getElementById('ridgeHunters').value.split(',').map(s => s.trim()).filter(s => s);
+                let ridgeMessage = `Хребет: ${ridgeHunters.join(', ')}.`;
+                
+                if (locationsData.length === 0) {
+                    const ridgeCarriers = document.getElementById('ridgeCarriers').value.split(',').map(s => s.trim()).filter(s => s);
+                    if (ridgeCarriers.length > 0) {
+                        ridgeMessage += ` Носильщики: ${ridgeCarriers.join(', ')}.`;
+                    }
+                }
+                finalMessages = [ridgeMessage];
+                
+                for (let i = 0; i < locationsData.length; i++) {
+                    const locDiv = document.querySelector(`.location-distribution[data-loc-idx="${i+1}"]`);
+                    if (!locDiv) continue;
+                    const locName = locDiv.querySelector('.loc-select')?.value;
+                    const leader = locDiv.querySelector('.loc-leader')?.value.trim();
+                    const hunters = locDiv.querySelector('.loc-hunters')?.value.split(',').map(s => s.trim()).filter(s => s) || [];
+                    const carriers = locDiv.querySelector('.loc-carriers')?.value.split(',').map(s => s.trim()).filter(s => s) || [];
+                    
+                    if (locName) {
+                        let msg = `${locName}: `;
+                        if (hunters.length > 0) {
+                            msg += `${hunters.join(', ')}. `;
+                        }
+                        if (carriers.length > 0) msg += ` Носильщики: ${carriers.join(', ')}. `;
+                        if (leader) {
+                            let leaderText = (leader === 'Я' || leader?.toLowerCase() === 'я') ? 'Веду я.' : `Ведёт ${leader}.`;
+                            msg += leaderText;
+                        }
+                        finalMessages.push(msg);
+                    }
+                }
+                
+                finalMsgIndex = 0;
+                setInputState('Отправьте результат', true, finalMessages[0]);
+            }
+
+            function endGameTimeout() {
+                gameActive = false;
+                clearInterval(timerInterval);
+                messageText.textContent = 'Ты не уложился по времени! Попробуй ещё раз.';
+                messageOverlay.classList.add('visible');
+            }
+
+            function showSuccessOverlay() {
+                gameActive = false;
+                clearInterval(timerInterval);
+                messageText.textContent = 'Молодец! Хочешь собрать ещё раз?';
+                messageOverlay.classList.add('visible');
+            }
+
+            sendBtn.addEventListener('click', () => {
+                if (!gameActive || sendBtn.disabled) return;
+                const msg = chatInput.value.trim();
+                if (!msg) return;
+                addChatMessage(msg, PUPIL_NAME);
+                setInputState('Жди...', false);
+                if (!initialDialogDone) return;
+                
+                if (instructTriggered && instructSentCount < instructMessages.length && !distributionReady) {
+                    instructSentCount++;
+                    if (instructSentCount < instructMessages.length) {
+                        setInputState('Отправьте следующее сообщение', true, instructMessages[instructSentCount]);
+                    } else {
+                        instructSentCount = 0;
+                        distributionReady = true;
+                        showDistributionPanel();
+                    }
+                }
+                else if (finalMessages.length > 0 && finalMsgIndex < finalMessages.length) {
+                    finalMsgIndex++;
+                    if (finalMsgIndex < finalMessages.length) {
+                        setInputState('Отправьте следующее сообщение', true, finalMessages[finalMsgIndex]);
+                    } else {
+                        startDialog([
+                            { text: 'Молодец! Теперь иди. На охотничьей локации не забудь огласить правила и шаблон отписи (скопировать из блога Охотников).', isItalic: false },
+                            { text: 'Также не забывай, что в течение 10 минут после начала охоты к тебе могут присоединиться ещё котики.', isItalic: false },
+                            { text: 'Волчий Вой смотрел, как вы уверенно киваете и бежите на свою охотничую локацию.', isItalic: true }
+                        ]);
+                    }
+                }
+                else if (initialDialogDone && !instructTriggered && !distributionReady) {
+                    startTimer();
+                    generateRandomCatResponses();
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (e.target.id === 'addLocationBtn') {
+                    saveAllData();
+                    const available = AVAILABLE_LOCATIONS.filter(loc => !locationsData.some(l => l.location === loc));
+                    if (available.length > 0) {
+                        locationsData.push({
+                            location: available[0],
+                            leader: '',
+                            hunters: [],
+                            carriers: []
+                        });
+                        renderDistributionPanel();
+                    }
+                }
+            });
+
+            document.getElementById('submitDistribution').addEventListener('click', () => {
+                if (validateDistribution()) {
+                    onDistributionSuccess();
+                }
+            });
+
+            tryAgainBtn.addEventListener('click', () => {
+                location.reload();
+            });
+
+            document.addEventListener('click', function(e) {
+                if (dialogPanel.classList.contains('active') && dialogActive) {
+                    if (isPrinting) {
+                        if (printTimer) clearTimeout(printTimer);
+                        isPrinting = false;
+                        printTimer = null;
+                        if (meetingDialogTexts.length > 0 && meetingDialogIndex < meetingDialogTexts.length) {
+                            dialogText.innerHTML = meetingDialogTexts[meetingDialogIndex].isItalic ? 
+                                '<i>' + meetingDialogTexts[meetingDialogIndex].text + '</i>' : 
+                                meetingDialogTexts[meetingDialogIndex].text;
+                        }
+                    } else {
+                        if (meetingDialogTexts.length > 0 && meetingDialogIndex < meetingDialogTexts.length - 1) {
+                            meetingDialogIndex++;
+                            printDialog(meetingDialogTexts[meetingDialogIndex].text, meetingDialogTexts[meetingDialogIndex].isItalic, () => {});
+                        } 
+                        else if (meetingDialogTexts.length > 0 && meetingDialogIndex === meetingDialogTexts.length - 1) {
+                            dialogPanel.classList.remove('active');
+                            dialogActive = false;
+                            
+                            if (!initialDialogDone && meetingDialogTexts.length === 3 && meetingDialogTexts[0].text.includes('Волчий Вой сел')) {
+                                initialDialogDone = true;
+                                const phrases = ['Лапки на охоту?', 'Желающие на охоту?'];
+                                const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+                                setInputState('Нажмите ОК для отправки', true, randomPhrase);
+                            } 
+                            else if (instructTriggered && meetingDialogTexts.length === 1 && meetingDialogTexts[0].text.includes('Не забудь кинуть инструктаж')) {
+                                setInputState('Отправьте инструктаж', true, instructMessages[0]);
+                            }
+                            else if (meetingDialogTexts.length === 3 && meetingDialogTexts[2].text.includes('Волчий Вой смотрел')) {
+                                showSuccessOverlay();
+                            }
+                            meetingDialogTexts = [];
+                            meetingDialogIndex = 0;
+                        }
+                    }
+                }
+            });
+
+            renderGrid();
+            setTimeout(() => startInitialDialogs(), 500);
+        })();
+
+        function showNotification(message) {
+            const toast = document.getElementById('notificationToast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
