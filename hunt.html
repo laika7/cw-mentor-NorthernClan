@@ -749,7 +749,7 @@
                 <div class="game-field">
                     <div class="location-header">
                         <div class="location-name" id="locationName">Перевал</div>
-                        <div class="timer-display" id="timerDisplay">05:00</div>
+                        <div class="timer-display" id="timerDisplay">00:00</div>
                     </div>
                     <div style="overflow-x: auto;">
                         <table class="field-table" id="fieldTable" style="background-image: url('https://pic.maxiol.com/images2/1773163035.784318299.89000.jpg');">
@@ -936,15 +936,14 @@
                     return { name: name, role: 'носильщик', canBeHunter: false, canBeLeader: false };
                 }
                 if (msg.includes('я нв') || msg.includes('я не вести') || 
-                    msg.includes('я, нв') || msg.includes('я, не вести') ||
-                    msg.includes('лапа нв') || msg.includes('лапа, не вести')) {
+                    msg.includes('я, нв') || msg.includes('я, не вести')) {
                     return { name: name, role: 'нв', canBeHunter: true, canBeLeader: false };
                 }
                 return { name: name, role: 'охотник', canBeHunter: true, canBeLeader: true };
             }
 
             const ALL_CATS = [
-                { name: 'Окутанная Розовым' }, { name: 'Старый Хрыч' }, { name: 'Чернеющая' }, { name: 'Красоточка' },
+                { name: 'Окутанная Розовым' }, { name: 'Старый Хрыч' }, { name: 'Чернеющая' }, { name: 'Роскошь' },
                 { name: 'Пламелапушка' }, { name: 'Укур Рыси' }, { name: 'Выжига' }, { name: 'Полуночь' }, { name: 'Пряный Мёд' }, 
                 { name: 'Грань Света' }, { name: 'Солнечнопляска' }, { name: 'Метель' }, { name: 'Вещие Грёзы' }, { name: 'Внешний Цвет' }, 
                 { name: 'Сырая Няша' }
@@ -954,7 +953,7 @@
                 { row: 1, col: 0, name: 'Окутанная Розовым', image: 'https://pic.maxiol.com/images2/1773904027.1567825077.roz.png' },
                 { row: 0, col: 3, name: 'Старый Хрыч', image: 'https://pic.maxiol.com/images2/1774423974.784317019.hrip.png' },
                 { row: 0, col: 1, name: 'Чернеющая', image: 'https://pic.maxiol.com/images2/1774425443.784317019.cherni.png' },
-                { row: 2, col: 8, name: 'Красоточка', image: 'https://pic.maxiol.com/images2/1774465040.784317019.krasot.png' },
+                { row: 2, col: 8, name: 'Роскошь', image: 'https://pic.maxiol.com/images2/1774465040.784317019.krasot.png' },
                 { row: 2, col: 7, name: 'Пламелапушка', image: 'https://pic.maxiol.com/images2/1774424133.784317019.plamel.png' },
                 { row: 5, col: 9, name: 'Укур Рыси', image: 'https://pic.maxiol.com/images2/1774423332.784317019.ukus.png' },
                 { row: 0, col: 6, name: 'Выжига', image: 'https://pic.maxiol.com/images2/1774423891.784317019.vyzh.png' },
@@ -970,8 +969,8 @@
             ];
 
             const RESPONSE_PHRASES = {
-                hunter: ['Я', 'Лапа'],
-                notLeader: ['Я нв', 'Я не вести', 'Я, нв', 'Я, не вести', 'Лапа нв', 'Лапа, не вести'],
+                hunter: ['Я'],
+                notLeader: ['Я нв', 'Я не вести', 'Я, нв', 'Я, не вести'],
                 carrier: ['Я носить', 'Я, нести', 'Я, носильщик', 'Я, носить']
             };
 
@@ -996,7 +995,7 @@
             ];
 
             let timerInterval = null;
-            let timerSeconds = 300;
+            let timerSeconds = 0;
             let gameActive = true;
             let initialDialogDone = false;
             let instructTriggered = false;
@@ -1007,6 +1006,8 @@
             let finalMsgIndex = 0;
             
             let respondedCats = [];
+            let expectedCatsCount = 0;
+            let catsRespondedCount = 0;
             let locationsData = [];
 
             let isPrinting = false;
@@ -1087,62 +1088,80 @@
             }
 
             function generateRandomCatResponses() {
-                const catsCount = Math.floor(Math.random() * 8) + 3;
+                const minCats = 4;
+                const maxCats = 12;
+                const catsCount = Math.floor(Math.random() * (maxCats - minCats + 1)) + minCats;
+                expectedCatsCount = catsCount;
+                catsRespondedCount = 0;
+                
                 const shuffled = [...ALL_CATS].sort(() => Math.random() - 0.5);
                 const selectedCats = shuffled.slice(0, catsCount);
                 let hasHunter = false;
                 const responses = [];
                 
-                selectedCats.forEach((cat) => {
-                    const typeRand = Math.random();
-                    let roleType, phrases;
-                    let adjustedRand = typeRand;
-                    if (!hasHunter) {
-                        adjustedRand = typeRand * 0.8;
-                    }
+                selectedCats.forEach((cat, idx) => {
+                    let roleType;
                     
-                    if (adjustedRand < 0.6) {
+                    if (idx === 0 && !hasHunter) {
                         roleType = 'hunter';
-                        phrases = RESPONSE_PHRASES.hunter;
                         hasHunter = true;
-                    } else if (adjustedRand < 0.85) {
-                        roleType = 'notLeader';
-                        phrases = RESPONSE_PHRASES.notLeader;
+                    } else if (idx === 1 && !hasHunter) {
+                        roleType = 'hunter';
+                        hasHunter = true;
                     } else {
-                        roleType = 'carrier';
-                        phrases = RESPONSE_PHRASES.carrier;
+                        const typeRand = Math.random();
+                        if (typeRand < 0.55) {
+                            roleType = 'hunter';
+                            hasHunter = true;
+                        } else if (typeRand < 0.8) {
+                            roleType = 'notLeader';
+                        } else {
+                            roleType = 'carrier';
+                        }
                     }
                     
+                    const phrases = RESPONSE_PHRASES[roleType];
                     const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-                    const responseText = randomPhrase.replace('{name}', cat.name);
-                    const delay = Math.random() * 160000 + 1000;
-                    responses.push({ cat, responseText, delay, roleType });
+                    const delay = Math.random() * 17000 + 3000;
+                    
+                    responses.push({ cat, responseText: randomPhrase, delay, roleType });
                 });
                 
                 if (!hasHunter && responses.length > 0) {
                     const lastIndex = responses.length - 1;
-                    const last = responses[lastIndex];
-                    const hunterPhrases = RESPONSE_PHRASES.hunter;
-                    const randomHunterPhrase = hunterPhrases[Math.floor(Math.random() * hunterPhrases.length)];
-                    responses[lastIndex] = {
-                        ...last,
-                        responseText: randomHunterPhrase.replace('{name}', last.cat.name),
-                        roleType: 'hunter'
-                    };
+                    responses[lastIndex].roleType = 'hunter';
+                    responses[lastIndex].responseText = RESPONSE_PHRASES.hunter[0];
                 }
                 
-                responses.forEach(({ cat, responseText, delay }) => {
+                responses.forEach(({ cat, responseText, delay, roleType }) => {
                     setTimeout(() => {
                         if (gameActive && !instructTriggered && !distributionReady) {
                             addChatMessage(responseText, cat.name);
                             const catRole = parseCatRole(responseText, cat.name);
                             respondedCats.push(catRole);
+                            catsRespondedCount++;
+                            
+                            if (catsRespondedCount === expectedCatsCount && !instructTriggered && !distributionReady) {
+                                instructTriggered = true;
+                                startDialog([
+                                { text: 'Не забудь кинуть инструктаж из блога Охотников!', isItalic: false },
+                                { text: 'Учти, что сообщение с распределением участников отсылается после nn:00, но можно отправить сообщение и чуть позже, если не успеваешь! Ничего страшного не случится.', isItalic: false },
+                                { text: 'Если в реальном сборе охоты никто не отозвался, то пиши «Сбор окончен, охота не состоится из-за отсутствия участников» или подобное.', isItalic: false },
+                                ]);
+                            }
                         }
                     }, delay);
                 });
             }
 
             function saveAllData() {
+                if (locationsData.length > 0) {
+                    const ridgeCarriersInput = document.getElementById('ridgeCarriers');
+                    if (ridgeCarriersInput && ridgeCarriersInput.type !== 'hidden') {
+                        ridgeCarriersInput.value = '';
+                    }
+                }
+                
                 const ridgeInput = document.getElementById('ridgeHunters');
                 if (ridgeInput) {
                     window.ridgeHuntersValue = ridgeInput.value;
@@ -1162,7 +1181,10 @@
 
             function renderDistributionPanel() {
                 const oldRidgeHunters = document.getElementById('ridgeHunters')?.value || '';
-                const oldRidgeCarriers = document.getElementById('ridgeCarriers')?.value || '';
+                let oldRidgeCarriers = '';
+                if (locationsData.length === 0) {
+                    oldRidgeCarriers = document.getElementById('ridgeCarriers')?.value || '';
+                }
                 const selectedLocNames = locationsData.map(l => l.location);
                 const availableForNew = AVAILABLE_LOCATIONS.filter(loc => !selectedLocNames.includes(loc));
                 const showRidgeCarriers = locationsData.length === 0;
@@ -1182,7 +1204,7 @@
                             <input type="text" id="ridgeCarriers" value="${oldRidgeCarriers.replace(/"/g, '&quot;')}" placeholder="Имена через запятую с большой буквы">
                         </div>`;
                 } else {
-                    html += `<input type="hidden" id="ridgeCarriers" value="${oldRidgeCarriers.replace(/"/g, '&quot;')}">`;
+                    html += `<input type="hidden" id="ridgeCarriers" value="">`;
                 }
                 
                 html += `<div class="note-text">* Оставь поле с носильщиками пустым, если их нет.</div>
@@ -1259,7 +1281,7 @@
                 const cols = 10;
                 
                 for (let row = 0; row < rows; row++) {
-                    html += '</tr>';
+                    html += '<tr>';
                     for (let col = 0; col < cols; col++) {
                         html += '<td><div class="cage_items">';
                         
@@ -1305,19 +1327,10 @@
             function startTimer() {
                 timerInterval = setInterval(() => {
                     if (!gameActive) return;
-                    timerSeconds--;
+                    timerSeconds++;
                     const mins = Math.floor(timerSeconds / 60);
                     const secs = timerSeconds % 60;
                     timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                    if (timerSeconds === 180 && !instructTriggered && !distributionReady) {
-                        instructTriggered = true;
-                        startDialog([
-                            { text: 'Не забудь кинуть инструктаж из блога Охотников!', isItalic: false },
-                            { text: 'Учти, что отправить сообщение о распределении нужно спустя 5 минут после начала сбора охоты. В данном симуляторе это не учитывается, но в настоящем сборе надо.', isItalic: false },
-                            { text: 'Если в реальном сборе охоты никто не отозвался, то пиши «Сбор окончен, охота не состоится из-за отсутствия участников» или подобное.', isItalic: false },
-                        ]);
-                    }
-                    if (timerSeconds <= 0) endGameTimeout();
                 }, 1000);
             }
 
@@ -1533,7 +1546,6 @@
             function onDistributionSuccess() {
                 distributionPanel.classList.remove('visible');
                 clearInterval(timerInterval);
-                timerDisplay.style.opacity = '0';
                 
                 const ridgeHunters = document.getElementById('ridgeHunters').value.split(',').map(s => s.trim()).filter(s => s);
                 let ridgeMessage = `Хребет: ${ridgeHunters.join(', ')}.`;
@@ -1572,17 +1584,12 @@
                 setInputState('Отправь результат', true, finalMessages[0]);
             }
 
-            function endGameTimeout() {
-                gameActive = false;
-                clearInterval(timerInterval);
-                messageText.textContent = 'Ты не уложился по времени! Попробуй ещё раз.';
-                messageOverlay.classList.add('visible');
-            }
-
             function showSuccessOverlay() {
                 gameActive = false;
                 clearInterval(timerInterval);
-                messageText.textContent = 'Молодец! Хочешь собрать ещё раз?';
+                const mins = Math.floor(timerSeconds / 60);
+                const secs = timerSeconds % 60;
+                messageText.innerHTML = `Молодец! Охота собрана за ${mins}:${secs.toString().padStart(2, '0')}. Хочешь собрать ещё раз?`;
                 messageOverlay.classList.add('visible');
             }
 
