@@ -995,7 +995,19 @@
                 characters: [
                     { row: 5, col: 9, name: 'Дух Севера', layers: ['https://pic.maxiol.com/thumbs2/1773161412.784318299..png'] },
                     { row: 4, col: 6, name: 'Визжалка', layers: ['https://e.radikal.host/2026/10/10/image517536283d063eaa.png'] },
-                    { row: 4, col: 5, name: 'Удар', layers: ['https://e.radikal.host/2026/10/10/imagea42339ff7574037d.png'] }
+                    { row: 4, col: 5, name: 'Удар', layers: ['https://e.radikal.host/2026/10/10/imagea42339ff7574037d.png'] },
+                    { 
+                        row: 2, col: 3, 
+                        name: 'Зубр', 
+                        layers: ['https://e.radikal.host/2026/10/10/image2013f5a34f1a7bbd.png'],
+                        arrow: { angle: 90 }
+                    },
+                    { 
+                        row: 2, col: 4, 
+                        name: 'Вестник Шторма', 
+                        layers: ['https://e.radikal.host/2026/10/10/image9249de08049bf8e6.png'],
+                        arrow: { angle: 270 }
+                    }
                 ],
                 grid: {
                     rows: 6,
@@ -4193,7 +4205,24 @@
                         character.layers.forEach(layer => {
                             layersHtml += `<div class="cat-layer" style="background-image: url('${layer}');"></div>`;
                         });
-                        html += `<div class="other-cat" data-character="${character.name}" data-row="${row}" data-col="${col}" style="cursor: pointer;">${layersHtml}</div>`;
+
+                        let arrowHtml = '';
+                        if (character.arrow) {
+                            arrowHtml = `
+                                <div class="arrow arrow-paws" style="position: absolute; top: 60px; left: -20px; transform: rotate(${character.arrow.angle}deg); opacity: 1; transform-origin: center center; z-index: 30; pointer-events: none;">
+                                    <table style="width: 60px; margin: 0;">
+                                        <tbody><tr>
+                                            <td class="arrow_green" style="width: 60px;"></td>
+                                        </tr></tbody>
+                                    </table>
+                                </div>
+                            `;
+                        }
+
+                        html += `<div class="other-cat" data-character="${character.name}" data-row="${row}" data-col="${col}" style="cursor: pointer; position: relative;">
+                            ${arrowHtml}
+                            ${layersHtml}
+                        </div>`;
                     }
 
                     const item = location.items?.find(i => i.row === row && i.col === col);
@@ -4331,6 +4360,8 @@
             if (!gameActive || meetingDialogActive || dialogActive) return;
             
             const characterName = this.dataset.character;
+
+            if (characterName === 'Зубр' || characterName === 'Вестник Шторма') return;
             
             choiceComments = [];
             
