@@ -1000,13 +1000,13 @@
                         row: 2, col: 3, 
                         name: 'Зубр', 
                         layers: ['https://e.radikal.host/2026/10/10/image2013f5a34f1a7bbd.png'],
-                        arrow: { angle: 180 }
+                        arrow: { angle: 190 }
                     },
                     { 
                         row: 2, col: 4, 
                         name: 'Вестник Шторма', 
                         layers: ['https://e.radikal.host/2026/10/10/image9249de08049bf8e6.png'],
-                        arrow: { angle: 0 }
+                        arrow: { angle: 10 }
                     }
                 ],
                 grid: {
@@ -4209,7 +4209,7 @@
                         let arrowHtml = '';
                         if (character.arrow) {
                             arrowHtml = `
-                                <div class="arrow arrow-paws" style="position: absolute; top: 60px; left: -20px; transform: rotate(${character.arrow.angle}deg); opacity: 1; transform-origin: center center; z-index: 30; pointer-events: none;">
+                                <div class="arrow arrow-paws" style="position: absolute; top: 60px; left: 0px; transform: rotate(${character.arrow.angle}deg); opacity: 1; transform-origin: center center; z-index: 30; pointer-events: none;">
                                     <table style="width: 60px; margin: 0;">
                                         <tbody><tr>
                                             <td class="arrow_green" style="width: 60px;"></td>
